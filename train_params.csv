@@ -1,0 +1,4 @@
+﻿train_type,capacity_t,fixed_cost_per_train,loading_cost_per_t,variable_cost_per_km,freight_rate_per_tkm
+货运动车组,85.0,50000,144,116.6,4.5
+确认车捎带,8.0,0,120,0.0,3.0
+载客列车捎带,2.7,0,120,0.0,3.0

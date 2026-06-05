@@ -1,0 +1,5 @@
+﻿scale_id,name,cargo_emu_capacity,piggyback_capacity,construction_cost_yi,fixed_labor_cost_wan,mgmt_cost_per_train,labor_cost_per_train
+0,改建小规模,1,6,0.768,12,20000,2000
+1,新建小规模,4,6,5.76,1200,20000,2000
+2,新建中规模,8,6,7.68,2100,20000,2000
+3,新建大规模,10,6,9.6,3000,20000,2000

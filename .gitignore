@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# LaTeX / PDF aux files
+*.aux
+*.log
+*.toc
+*.out
+*.synctex.gz
+*.pdf
+
+# Large data outputs (keep CSVs though)
+*.json
+!problem5_results.json
+!problem6_results.json
+
+# PPT/Word temp files
+~$*.pptx
+~$*.docx
