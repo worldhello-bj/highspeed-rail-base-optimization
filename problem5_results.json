@@ -1,0 +1,13 @@
+{
+  "n_bases": 7,
+  "total_investment_yi": 5.376,
+  "daily_revenue": 2820135.7800000007,
+  "daily_total_cost": 638900.5723445816,
+  "daily_net_profit": 2181235.207655419,
+  "annual_net_profit_yi": 7.96150850794228,
+  "payback_months": 8.102987007505401,
+  "npv_20yr_yi": 93.84199366989834,
+  "irr": 1.4809353433634693,
+  "bep_tons_per_day": 25.993377203909247,
+  "roi_annual": 148.0935362340454
+}
