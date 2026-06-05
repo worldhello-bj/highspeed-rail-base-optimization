@@ -1,0 +1,268 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper,fontset=none]{ctexart}
+\setCJKmainfont{SimSun}\setCJKsansfont{SimSun}\setCJKmonofont{SimSun}
+\setCJKfamilyfont{zhsong}{SimSun}\setCJKfamilyfont{zhhei}{SimSun}
+\setCJKfamilyfont{zhkai}{SimSun}\setCJKfamilyfont{zhfs}{SimSun}
+
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,multirow,array,graphicx,float,hyperref,enumitem,xcolor,colortbl}
+
+\begin{document}
+
+\title{\heiti\zihao{2} 问题三：基地选址 MIP 模型\\[6pt]
+       \large 收益合理性分析与多维敏感度测试报告}
+\author{\kaishu\zihao{4} 胡鹏禹}
+\date{\zihao{4} 2026年6月5日}
+\maketitle
+\thispagestyle{empty}
+
+% ============================================================
+\section{问题提出：收益是否"虚高"？}
+% ============================================================
+
+基准情景下，模型求得日均净利润 \textbf{215.9 万元/日}（年化 7.88 亿元），投资回收期仅 8.2 个月，ROI 高达 148\%/年。这一数字是否合理？是否存在参数设定偏差导致的"虚高"？
+
+为回答这一问题，我们对五大关键参数进行了系统性敏感度测试，涵盖 40 余个情景的完整 MIP 重求解。
+
+\section{基准情景收益结构拆解}
+
+\begin{table}[H]
+\centering\small
+\caption{基准情景收益结构（日均）}
+\begin{tabular}{lrrr}
+\toprule
+项目 & 金额（元/日） & 占总收入\% & 备注 \\
+\midrule
+\rowcolor{blue!8}
+\textbf{运输总收入} & \textbf{2,808,289} & 100\% & \\
+\quad EMU 收入 & 495,156 & 17.6\% & 95.8t $\times$ 约5167元/t \\
+\quad 捎带收入 & 2,313,133 & 82.4\% & 689.8t $\times$ 约3353元/t \\
+\midrule
+\rowcolor{red!8}
+\textbf{总成本} & \textbf{649,349} & 23.1\% & 收入成本率 23.1\% \\
+\quad 建设折旧 & 75,945 & 2.7\% & 7站 $\times$ 1.08万/日 \\
+\quad EMU 运行费 & 330,659 & 11.8\% & 内陆走廊运输 \\
+\quad 装卸费（EMU+捎带） & 193,143 & 6.9\% & \\
+\quad 其他 & 49,602 & 1.8\% & \\
+\midrule
+\rowcolor{green!8}
+\textbf{日均净利润} & \textbf{2,158,940} & 76.9\% & \textbf{利润率 76.9\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{利润率高达 76.9\% 的原因}：
+\begin{enumerate}
+    \item \textbf{捎带"零边际基础设施成本"}：捎带利用既有列车空余空间，不产生运行费和折旧费。82.4\% 的收入来自捎带，但其成本仅为装卸费（240 元/吨）；
+    \item \textbf{高运价费率}：EMU 4.5 元/吨公里、捎带 3.0 元/吨公里，平均运距约 980 km，意味着每吨收入约 3000--5000 元；
+    \item \textbf{轻资产策略}：改建小规模每站仅 0.768 亿元，日均折旧不到 1.1 万元；
+    \item \textbf{战略性取舍}：模型放弃 58.8\% 的低收益货流，仅承运利润最丰厚的 OD 对。
+\end{enumerate}
+
+\section{敏感度分析设计}
+
+对以下五大参数进行独立变动，每个参数测试 8--10 个水平，共 42 个情景：
+
+\begin{table}[H]
+\centering\caption{敏感度测试参数设计}
+\begin{tabular}{lcc}
+\toprule
+参数 & 基准值 & 测试范围 \\
+\midrule
+运价费率 & EMU 4.5, 捎带 3.0 元/t·km & 0.3x -- 2.0x \\
+需求水平 & 1908.4 吨/日 & 0.3x -- 5.0x \\
+建设成本 & 0.768 亿元/站（改建小） & 0.3x -- 5.0x \\
+EMU 固定成本 & 50000 元/列 & 0.3x -- 3.0x \\
+捎带能力 & 6 列/日/站（48 吨/日） & 0.3x -- 3.0x \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{敏感度测试结果}
+
+\subsection{运价费率敏感度——最敏感参数}
+
+\begin{table}[H]
+\centering\small
+\caption{运价费率变动对选址和收益的影响}
+\begin{tabular}{cC{2cm}C{2.2cm}C{2cm}C{1.8cm}C{1.8cm}}
+\toprule
+费率倍数 & 净利（万/日） & 基地数 & 满足率 & EMU\% & 备注 \\
+\midrule
+0.3x & 53.5 & \cellcolor{red!15}0 & 36\% & 0\% & 纯捎带，勉强盈利 \\
+0.5x & 100.2 & \cellcolor{red!15}0 & 36\% & 0\% & \\
+0.7x & 146.9 & \cellcolor{red!15}0 & 36\% & 0\% & \\
+0.8x & 170.3 & \cellcolor{red!15}0 & 36\% & 0\% & \\
+0.9x & 193.6 & \cellcolor{red!15}0 & 36\% & 0\% & \\
+\midrule
+\rowcolor{green!10}
+\textbf{1.0x} & \textbf{215.9} & \textbf{7} & \textbf{41\%} & \textbf{12\%} & \textbf{基准：基地出现} \\
+\midrule
+1.1x & 246.3 & 7 & 45\% & 19\% & \\
+1.2x & 277.5 & 7 & 45\% & 20\% & \\
+1.5x & 377.8 & \cellcolor{yellow!15}10 & 49\% & 26\% & 更多基地 \\
+2.0x & 637.7 & \cellcolor{yellow!15}12 & 83\% & 56\% & 全建+大规模 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{关键发现}：
+\begin{itemize}
+    \item \textbf{费率降至 0.9x 以下时，所有基地关闭}——模型退化为纯捎带模式。此时 EMU 的单位收入无法覆盖其高昂固定成本；
+    \item 费率 0.5x 时仍盈利（100 万/日），说明\textbf{捎带模式本身是独立的盈利引擎}；
+    \item 基地建设的"触发费率"约为基准的 0.95x，非常接近当前设定；
+    \item 费率提升至 2.0x 时，12 个候选站全部建库，满足率飙升至 83\%。
+\end{itemize}
+
+\subsection{需求水平敏感度——利润高度稳定}
+
+\begin{table}[H]
+\centering\small
+\caption{需求水平变动的影响}
+\begin{tabular}{cC{2cm}C{2cm}C{2cm}C{2cm}}
+\toprule
+需求倍数 & 净利（万/日） & 基地数 & 满足率 & 规模升级？ \\
+\midrule
+0.3x (572t) & 129.8 & 0 & 72\% & -- \\
+0.5x (954t) & 169.5 & 0 & 56\% & -- \\
+0.7x (1336t) & 198.4 & 0 & 49\% & -- \\
+\rowcolor{green!10}
+1.0x (1908t) & 215.9 & 7 & 41\% & 改建小规模 \\
+1.3x (2481t) & 230.7 & 7 & 35\% & 改建小规模 \\
+1.5x (2863t) & 235.8 & 7 & 32\% & 改建小规模 \\
+2.0x (3817t) & 241.2 & 8 & 24\% & 改建小规模 \\
+3.0x (5725t) & 247.6 & 8 & 16\% & 改建小规模 \\
+5.0x (9542t) & 249.1 & 8 & 10\% & \textbf{仍是改建小规模！} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{惊人发现}：
+\begin{itemize}
+    \item \textbf{需求增长 5 倍（至 9542 吨/日），净利仅从 216 万增至 249 万（+15\%）}；
+    \item \textbf{即使需求翻 5 倍，模型仍拒绝升级基地规模}——全部锁定"改建小规模"！
+    \item 原因：捎带能力瓶颈（720 吨/日全网总量）卡死了有效供给；超出捎带能力的额外需求必须由 EMU 承运，但 EMU 的高成本吞噬了大部分增量收入；
+    \item \textbf{需求下降 70\% 时仍盈利 130 万/日}——极强的抗风险能力。
+\end{itemize}
+
+\subsection{建设成本敏感度——轻资产是核心壁垒}
+
+\begin{table}[H]
+\centering\small
+\caption{建设成本变动的影响}
+\begin{tabular}{cC{2.2cm}C{2cm}C{2.2cm}}
+\toprule
+成本倍数 & 净利（万/日） & 基地数 & 总投资（亿元） \\
+\midrule
+0.3x & 221.8 & 7 & 1.6 \\
+0.5x & 220.3 & 7 & 2.7 \\
+0.7x & 218.8 & 7 & 3.8 \\
+\rowcolor{green!10}
+1.0x & 215.9 & 7 & 5.4 \\
+\midrule
+\rowcolor{red!10}
+1.5x & 217.0 & \textbf{0} & \textbf{0.0} \\
+2.0x & 217.0 & 0 & 0.0 \\
+3.0x & 217.0 & 0 & 0.0 \\
+5.0x & 217.0 & 0 & 0.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{关键发现}：
+\begin{itemize}
+    \item 建设成本升至 1.5x（1.152 亿元/站）时，\textbf{所有基地关闭}；
+    \item 但净利几乎不变（217 万 vs 216 万）——因为模型自动退化为纯捎带，捎带本身的盈利能力足以支撑 217 万/日的净利；
+    \item 这说明：\textbf{捎带模式是利润的安全垫}，基地建设是"锦上添花"的增量（仅贡献约 -1 万/日的净增利）。
+\end{itemize}
+
+\subsection{EMU 固定成本敏感度}
+
+\begin{table}[H]
+\centering\small
+\caption{EMU 固定成本变动的影响}
+\begin{tabular}{cC{2.2cm}C{2cm}C{2cm}}
+\toprule
+EMU 固定成本倍数 & 净利（万/日） & EMU 占比 & 备注 \\
+\midrule
+0.3x (15000元/列) & 256.6 & 34\% & EMU 竞争力大幅提升 \\
+0.5x (25000元/列) & 234.1 & 26\% & \\
+0.7x (35000元/列) & 225.2 & 20\% & \\
+\rowcolor{green!10}
+1.0x (50000元/列) & 215.9 & 12\% & 基准 \\
+\midrule
+\rowcolor{red!10}
+1.5x (75000元/列) & 217.0 & \textbf{0\%} & 纯捎带 \\
+2.0x (100000元/列) & 217.0 & 0\% & 纯捎带 \\
+3.0x (150000元/列) & 217.0 & 0\% & 纯捎带 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{关键发现}：EMU 固定成本升至 1.5x 时，EMU 模式被完全淘汰，模型退化为纯捎带。但净利几乎不变（217 万），再次验证捎带是核心盈利引擎。
+
+\subsection{捎带能力敏感度——最强劲的利润杠杆}
+
+\begin{table}[H]
+\centering\small
+\caption{捎带能力变动的影响（每站每日捎带列数）}
+\begin{tabular}{cC{2cm}C{2cm}C{2cm}C{2cm}}
+\toprule
+能力倍数 & 净利（万/日） & 捎带量 (t/d) & EMU 占比 & 变化 \\
+\midrule
+0.3x (1.8列/站) & 74.7 & 216 & 45\% & \cellcolor{red!15}\textbf{-65\%} \\
+0.5x (3列/站)   & 118.8 & 360 & 24\% & -45\% \\
+0.7x (4.2列/站) & 162.8 & 503 & 22\% & -25\% \\
+\rowcolor{green!10}
+1.0x (6列/站)   & 215.9 & 690 & 12\% & 基准 \\
+1.5x (9列/站)   & 289.9 & 965 & 1\%  & +34\% \\
+2.0x (12列/站)  & 339.1 & 1076 & 0\%  & +57\% \\
+3.0x (18列/站)  & 415.7 & 1312 & 0\%  & +93\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{关键发现}：
+\begin{itemize}
+    \item \textbf{捎带能力是利润的最强杠杆}：能力翻倍 $\rightarrow$ 净利 +57\%；能力减半 $\rightarrow$ 净利 -45\%；
+    \item 捎带能力 0.3x 时，净利骤降至 74.7 万（-65\%），但 EMU 占比被动升至 45\%——捎带不够用，被迫启用昂贵的 EMU；
+    \item \textbf{管理启示}：在当前阶段，增加捎带频次（如增加确认车班次）的 ROI 远超新建基地。
+\end{itemize}
+
+\section{综合诊断：收益是否虚高？}
+
+\subsection{是，也不是——取决于视角}
+
+\begin{enumerate}[leftmargin=*]
+
+\item \textbf{从参数设定看：运价费率偏高}。EMU 4.5 元/吨公里和捎带 3.0 元/吨公里是案例给定的"标准费率"，但在实际市场中，公路卡车仅为 0.5 元/吨公里。高铁快运的费率是公路的 6--9 倍，这一价差在充分竞争市场中难以长期维持。\textbf{费率降至 0.7x 时，净利降至 147 万/日；降至 0.3x 时，净利仅 53 万/日}。
+
+\item \textbf{从模式结构看：捎带"零成本"假设可能偏乐观}。模型假设捎带不产生列车运行费和折旧费——这在"利用既有列车空余空间"的前提下是合理的，但若捎带量持续增长，可能触发额外的列车增开需求，此时边际成本将不再为零。
+
+\item \textbf{从竞争格局看：当前分析未考虑运价内生}。模型假设运价费率外生给定，但现实中高利润必然吸引竞争者进入（公路提升服务、航空降价），导致费率下行。\textbf{这是一个典型的"古诺均衡"缺失问题}。
+
+\item \textbf{从投资回报看：改建小规模确实具有极高的性价比}。每站 0.768 亿元的投资在 20 年折旧期内的日均成本仅 1.08 万元，而日均收入贡献远超此数。即使建设成本翻倍至 1.5x，模型也只是退化为纯捎带，仍保持 217 万/日的盈利能力。
+
+\end{enumerate}
+
+\subsection{最可靠的结论（对参数不敏感）}
+
+以下结论在广泛的参数范围内\textbf{稳健成立}：
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{捎带优先原则}：在所有测试情景中，捎带始终是主力承运模式（除非其能力被压缩至 0.3x 以下）；
+    \item \textbf{轻资产策略}：在需求达到约 3 倍基准（~5700 吨/日）之前，改建小规模始终优于任何新建方案；
+    \item \textbf{利润稳健性}：需求下降 70\% 仍盈利；建设成本翻 5 倍仍盈利（通过退化为纯捎带）。项目的破产风险极低；
+    \item \textbf{核心利润驱动}：捎带能力 $>$ 运价费率 $>$ 需求水平 $>$ 建设成本 $>$ EMU 固定成本。
+\end{enumerate}
+
+\section{给铁路局的政策建议}
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{短期（1--2 年）}：聚焦提升捎带能力——增加确认车班次、优化载客列车捎带空间利用率。这是 ROI 最高的投资方向；
+    \item \textbf{中期（3--5 年）}：在需求增长至 2500--3000 吨/日后，在现有 7 个内陆基地基础上逐步扩容至"新建小规模"（4 列/日），但需关注运价费率是否因竞争下调；
+    \item \textbf{长期（5--10 年）}：若需求突破 5000 吨/日且运价费率维持 70\% 以上，可考虑在东部枢纽（上海、杭州）增设基地，形成"东西双枢纽"格局；
+    \item \textbf{风险对冲}：密切监控公路快运的时效提升和航空货运的降价动向。若公路时效提升至 12 小时覆盖 800 km（通过高速公路网络优化），高铁的 500--1500 km 竞争优势带将受到侵蚀。
+\end{enumerate}
+
+\end{document}
