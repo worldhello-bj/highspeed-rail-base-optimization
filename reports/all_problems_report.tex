@@ -1,0 +1,332 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper,fontset=none]{ctexart}
+\setCJKmainfont{SimSun}\setCJKsansfont{SimSun}\setCJKmonofont{SimSun}
+\setCJKfamilyfont{zhsong}{SimSun}\setCJKfamilyfont{zhhei}{SimSun}
+\setCJKfamilyfont{zhkai}{SimSun}
+
+\usepackage[top=2.2cm,bottom=2.2cm,left=2.3cm,right=2.3cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,multirow,array,graphicx,float,hyperref,enumitem,xcolor,colortbl}
+
+\begin{document}
+
+\title{\heiti\zihao{2} 高铁快运基地选址与规模多维协同优化\\[4pt]
+       \large 全部问题综合分析报告}
+\author{\kaishu\zihao{4} 胡鹏禹}
+\date{\zihao{4} 2026年6月7日}
+\maketitle
+\thispagestyle{empty}
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{问题一：货流最短路与全有全无分配}
+% ============================================================
+
+\subsection{问题描述}
+假设全网快运货流全部采用货运动车组模式运输。计算每支OD在34节点路网中的最短路径，将1908.4吨/日需求全部沿最短路径分配，检验各区段是否超过线路通过能力（8列/日 $\times$ 85吨/列 = 680吨/日）。
+
+\subsection{路网结构}
+区域路网包含34个节点（15个主站+19个中间路由节点）和44条无向边。
+
+\begin{table}[H]\centering\small
+\caption{主站连接度（缩略图）}\label{tab:degree}
+\begin{tabular}{lclcl}
+\toprule
+站点 & 相邻主站数 & 站点 & 相邻主站数 \\
+\midrule
+南京 NJ & 5（BB,HF,HZ,NC,NT） & 武汉 WH & 5（CS,HF,NC,YC,ZZ）\\
+合肥 HF & 4（BB,NC,NJ,WH） & 郑州 ZZ & 3（CQ,WH,XZ）\\
+重庆 CQ & 4（CD,GY,YC,ZZ） & 南昌 NC & 4（CS,HF,NJ,WH）\\
+长沙 CS & 3（GY,NC,WH） & 成都 CD & 1（CQ）\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+成都仅通过重庆与全网连通，是路网中拓扑最脆弱的主站。
+
+\subsection{分配结果}
+
+\begin{table}[H]\centering\small
+\caption{全有全无分配核心指标}\label{tab:p1}
+\begin{tabular}{lr}
+\toprule
+指标 & 数值 \\
+\midrule
+总需求处理量 & 1908.4 吨/日 \\
+总周转量 & 1,871,085 吨$\cdot$公里/日 \\
+平均运距 & 980 km \\
+\rowcolor{green!5}
+最大断面流量 & 535.0 吨/日（合肥$\to$六安，饱和度78.7\%） \\
+超限区段数 & \textbf{0}（全部在680吨限制内） \\
+高负荷区段数（80\%+） & \textbf{0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]\centering\small
+\caption{OD距离分布}\label{tab:dist}
+\begin{tabular}{cccc}
+\toprule
+距离段 & OD对数 & 需求占比 & 累计需求(吨) \\
+\midrule
+0--300 km & 8 & 4.1\% & 77.4 \\
+300--500 km & 30 & 16.5\% & 315.5 \\
+500--800 km & 42 & 20.1\% & 383.2 \\
+800--1000 km & 34 & 18.8\% & 358.2 \\
+1000--1500 km & 44 & 22.9\% & 436.5 \\
+1500--2000 km & 30 & 10.7\% & 204.9 \\
+2000+ km & 2 & 7.0\% & 132.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{结论}
+\textbf{现有高铁路网的线路通过能力十分充裕}，没有任何区段超限，最大饱和度仅78.7\%。路网瓶颈不在线路而在车站处理能力和捎带容量约束。
+
+\clearpage
+
+% ============================================================
+\section{问题二：最小费用最大流分配}
+% ============================================================
+
+\subsection{模型设计}
+在问题一"无约束"基础上，引入两类硬约束：(1)线路通过能力（680吨/日/区段）；(2)车站捎带能力（每站发出/到达各$\le48$吨/日）。使用Gurobi求解"最大化总承运量→最小化总费用"的二阶段LP模型。
+
+\subsection{求解结果}
+
+\begin{table}[H]\centering\small
+\caption{问题二核心指标}\label{tab:p2}
+\begin{tabular}{lr}
+\toprule
+指标 & 数值 \\
+\midrule
+总需求 & 1908.4 吨/日 \\
+\rowcolor{green!5}
+最大满足量 & \textbf{1908.4 吨/日（100.0\%）} \\
+未满足量 & 0.0 吨/日 \\
+最小总费用 & 6,453,039 元/日（$\approx$645万/日） \\
+\midrule
+EMU承运量 & 1212.6 吨/日（63.5\%） \\
+捎带承运量 & 695.8 吨/日（36.5\%） \\
+\midrule
+平均吨成本 & 3,381 元/吨 \\
+平均吨收入 & 3,801 元/吨 \\
+\rowcolor{red!5}
+\textbf{吨均毛利} & \textbf{420 元/吨} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{与问题三的对比——利润从何而来？}
+
+问题二吨均毛利仅420元，但问题三吨均毛利高达2748元。差异根源：
+
+\begin{enumerate}
+    \item \textbf{问题二满足100\%需求}，其中大量长尾OD（$<5$吨/日、$>1500$km）的运输收入低于EMU运行成本，形成"倒挂"（吨均毛利被拉低）；
+    \item \textbf{问题三通过基地选址约束}，模型战略性放弃58.8\%的低收益货流，仅承运高利润OD（吨均毛利跃升至2748元）；
+    \item 这验证了"利润最大化$\neq$需求最大化"的运筹优化核心理念。
+\end{enumerate}
+
+\section{问题三：基地选址与规模优化（核心MIP模型）}
+
+\subsection{选址决策}
+12个备选站中精准选择\textbf{7个内陆枢纽}，全部"改建小规模"。
+
+\begin{table}[H]\centering\small
+\caption{选址与规模决策}\label{tab:loc}
+\begin{tabular}{ccl|ccl}
+\toprule
+站点 & 名称 & 决策 & 站点 & 名称 & 决策 \\
+\midrule
+WH & 武汉 & \cellcolor{green!15}改建小规模 & NJ & 南京 & \cellcolor{red!10}不建 \\
+CS & 长沙 & \cellcolor{green!15}改建小规模 & HZ & 杭州 & \cellcolor{red!10}不建 \\
+NC & 南昌 & \cellcolor{green!15}改建小规模 & SH & 上海 & \cellcolor{red!10}不建 \\
+ZZ & 郑州 & \cellcolor{green!15}改建小规模 & HF & 合肥 & \cellcolor{red!10}不建 \\
+CQ & 重庆 & \cellcolor{green!15}改建小规模 & XZ & 徐州 & \cellcolor{red!10}不建 \\
+GY & 贵阳 & \cellcolor{green!15}改建小规模 & & & \\
+CD & 成都 & \cellcolor{green!15}改建小规模 & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{格局特征}：建成基地全部位于中西部（武汉--长沙--贵阳--成都--重庆"品"字形走廊），东部沿海（上海、杭州、南京）全部放弃。
+
+\subsection{经济指标}
+
+\begin{table}[H]\centering\small
+\caption{日均经济指标}\label{tab:econ}
+\begin{tabular}{lrr}
+\toprule
+指标 & 金额（元/日） & 占比 \\
+\midrule
+运输总收入 & 2,808,289 & 100\% \\
+\quad EMU收入 & 495,156 & 17.6\% \\
+\quad 捎带收入 & 2,313,133 & 82.4\% \\
+\midrule
+总成本 & 649,349 & 23.1\% \\
+\rowcolor{green!5}
+\textbf{日均净利润} & \textbf{2,158,940} & \textbf{76.9\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{货流分担格局}
+
+\begin{table}[H]\centering\small
+\caption{货流模式分担}\label{tab:flow}
+\begin{tabular}{lrr}
+\toprule
+模式 & 吨/日 & 占比 \\
+\midrule
+总需求 & 1908.4 & 100\% \\
+实际满足 & 785.6 & 41.2\% \\
+\quad EMU承运 & 95.8 & 12.2\% \\
+\quad 捎带承运 & 689.8 & 87.8\% \\
+战略性放弃 & 1122.8 & 58.8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{三大核心发现}
+
+\begin{enumerate}
+\item \textbf{捎带是利润引擎}。捎带边际成本仅120元/吨（无运行费、无折旧），87.8\%的货流走捎带，贡献82.4\%收入。EMU全成本$2000-3500$元/吨，仅在内陆枢纽间因捎带能力饱和时启用；
+\item \textbf{东部零基地是理性选择}。上海、杭州、南京等东部枢纽的捎带频次极高，48吨/日/站即可覆盖主要货流。建库的边际收益远低于边际成本；
+\item \textbf{改建小规模碾压新建}。从"改建小规模"到"新建小规模"，日均摊销成本增10倍（1.08万$\to$11.1万），吞吐能力仅增4倍（1列$\to$4列）。在当前需求密度下，新建方案的投资回报率为负。
+\end{enumerate}
+
+\clearpage
+
+\section{问题四：列车开行方案设计}
+
+基于问题三MIP模型导出的边流量和捎带流量，进行运输服务拆解。
+
+\subsection{货运动车组班列方案}
+
+\begin{table}[H]\centering\small
+\caption{EMU骨干班列}\label{tab:emu}
+\begin{tabular}{lcc}
+\toprule
+运行路由 & 距离(km) & 开行频次 \\
+\midrule
+长沙$\to$贵阳$\to$成都$\to$重庆$\to$郑州 & 2715 & 双向各1列/日 \\
+长沙$\to$贵阳$\to$成都 & 1354 & 双向各1列/日 \\
+长沙$\to$贵阳$\to$重庆$\to$郑州 & 2120 & 双向各1列/日 \\
+武汉$\leftrightarrow$长沙直达 & 362 & 双向各1列/日 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+共17条EMU运行线，17列/日，承运125.3吨（内陆走廊）。
+
+\subsection{捎带开行方案}
+
+共119条捎带OD线，151列/日，承运689.8吨。主力OD为长距离跨区（如杭州$\to$成都1900km, 17.3吨/日）。
+
+\subsection{能力校核}
+区间EMU列车最大4列/日（限制8列）$\checkmark$；长沙站等效占用14列/日（捎带+EMU）为全网最高。
+
+\section{问题五：大周期盈亏平衡与财务评估}
+
+\subsection{投资概况}
+
+\begin{table}[H]\centering\small
+\caption{投资与回报}\label{tab:invest}
+\begin{tabular}{lr}
+\toprule
+指标 & 数值 \\
+\midrule
+建设基地 & 7个改建小规模 \\
+单站投资 & 0.768亿元 \\
+总投资 & \textbf{5.376亿元} \\
+年固定人工 & 84万元 \\
+\midrule
+年净利润 & \textbf{7.91亿元} \\
+投资回收期 & \textbf{8.2个月} \\
+ROI & \textbf{147\%/年} \\
+20年NPV（折现率5\%） & \textbf{93.1亿元} \\
+IRR & \textbf{147\%} \\
+盈亏平衡日货量 & 27吨（占实际3.4\%） \\
+安全边际 & \textbf{96.6\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{敏感性分析}
+\begin{itemize}
+    \item 需求波动-40\%：年净利降至4.63亿，回收期1.16年——\textbf{仍强健}
+    \item 运价波动-30\%：年净利降至7.36亿——\textbf{极低风险}
+    \item 建设成本+30\%：回收期仅延至10.7月——\textbf{投资安全}
+\end{itemize}
+
+\section{问题六：多式联运市场竞争分析}
+
+\subsection{纯运输成本对比（200吨货物）}
+
+\begin{table}[H]\centering\small
+\caption{三种模式成本对比}\label{tab:modes}
+\begin{tabular}{cccc}
+\toprule
+距离 & 高铁快运（万元） & 航空货运（万元） & 公路卡车（万元） \\
+\midrule
+300 km & 28.4 & 114.0 & \cellcolor{green!10}\textbf{5.5} \\
+800 km & 45.9 & 154.0 & \cellcolor{green!10}\textbf{10.8} \\
+1500 km & 70.3 & 210.0 & \cellcolor{green!10}\textbf{18.1} \\
+2000 km & 87.8 & 250.0 & \cellcolor{green!10}\textbf{23.4} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+公路在纯运输成本上全距离占优。高铁固定成本（50000元/列）远高于公路（2000元/车）。
+
+\subsection{综合竞争力}
+
+\begin{table}[H]\centering\small
+\caption{六维竞争力评分}\label{tab:radar}
+\begin{tabular}{lccc}
+\toprule
+维度 & 高铁 & 航空 & 公路 \\
+\midrule
+运输时效 & 8 & 10 & 2 \\
+运价竞争力 & 6 & 2 & 10 \\
+准点可靠性 & \textbf{10} & 5 & 6 \\
+装载能力 & 7 & 3 & 8 \\
+绿色低碳 & \textbf{9} & 2 & 6 \\
+网络覆盖 & 5 & 4 & \textbf{10} \\
+\midrule
+综合平均 & \textbf{7.5} & 4.3 & 7.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{结论}
+高铁的竞争优势不在价格而在\textbf{准点率（99\% vs 航空75\%）和低碳（碳排放为航空1/30）}。推荐定位500--1500km高附加值时效敏感市场。
+
+% ============================================================
+\section{综合结论与建议}
+% ============================================================
+
+\subsection{六道问题的逻辑递进关系}
+
+\textbf{问题一}（无约束分配）$\to$ 确认路网线路能力充裕，瓶颈不在线路。
+
+\textbf{问题二}（有约束MCMF）$\to$ 100\%需求可满足，但吨利仅420元——"满额承运"并不等于"利润最大"。
+
+\textbf{问题三}（MIP选址）$\to$ 核心模型。7个内陆改建小规模基地 + 捎带优先策略，净利216万/日，验证"战略性放弃=利润最大化"。
+
+\textbf{问题四}（开行方案）$\to$ 将问题三的流分配落地为可执行列车计划。
+
+\textbf{问题五}（财务评估）$\to$ 回收期8.2月，NPV 93亿，项目极强健。
+
+\textbf{问题六}（竞争分析）$\to$ 高铁不拼价格，拼时效+可靠性+低碳。
+
+\subsection{政策建议}
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{短期（1--2年）}：聚焦提升捎带能力——增加确认车班次。这是ROI最高的投资方向；
+    \item \textbf{中期（3--5年）}：在需求增长至2500+吨/日后，内陆基地逐步扩容至"新建小规模"；
+    \item \textbf{长期}：警惕公路时效提升和航空降价对高铁500--1500km优势带的侵蚀。
+\end{enumerate}
+
+\end{document}
