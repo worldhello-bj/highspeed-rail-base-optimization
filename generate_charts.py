@@ -32,7 +32,7 @@ def main():
     print("重新生成图表...")
     
     # 建立目录
-    output_dir = r"d:\高铁快运\docx_images"
+    output_dir = os.path.join(utils.IMAGES_DIR)
     os.makedirs(output_dir, exist_ok=True)
     
     # 1. 加载网络与需求
@@ -110,7 +110,7 @@ def main():
     
     # === 图表 3：问题三选址站点基地级别与日处理货流 ===
     try:
-        x_df = pd.read_csv(r"d:\高铁快运\problem3_x_flow.csv")
+        x_df = pd.read_csv(os.path.join(utils.OUTPUT_DIR, "problem3_x_flow.csv"))
         node_emu_flow = {}
         for idx, row in x_df.iterrows():
             u, v, flow = row['u'], row['v'], row['flow']
@@ -148,7 +148,8 @@ def main():
     
     # === 图表 4：问题五 敏感性分析（龙卷风图）===
     try:
-        with open(r"d:\高铁快运\problem5_sensitivity.json", 'r', encoding='utf-8') as f:
+        path = os.path.join(utils.OUTPUT_DIR, "problem5_sensitivity.json")
+        with open(path, 'r', encoding='utf-8') as f:
             sens_data = json.load(f)
         
         fig, axes = plt.subplots(1, 3, figsize=(16, 5), dpi=300)
@@ -211,7 +212,8 @@ def main():
     
     # === 图表 5：问题六 多式联运成本对比 ===
     try:
-        with open(r"d:\高铁快运\problem6_results.json", 'r', encoding='utf-8') as f:
+        path = os.path.join(utils.OUTPUT_DIR, "problem6_results.json")
+        with open(path, 'r', encoding='utf-8') as f:
             comp_data = json.load(f)
         
         cost_table = comp_data['cost_table']

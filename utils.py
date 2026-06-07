@@ -7,7 +7,12 @@ import pandas as pd
 import numpy as np
 import os
 
-DATA_DIR = r"d:\高铁快运"
+# 项目根目录（自动检测）
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(PROJECT_DIR, 'data')
+OUTPUT_DIR = os.path.join(PROJECT_DIR, 'output')
+REPORTS_DIR = os.path.join(PROJECT_DIR, 'reports')
+IMAGES_DIR = os.path.join(OUTPUT_DIR, 'images')
 
 # ============================================================
 # 常量定义

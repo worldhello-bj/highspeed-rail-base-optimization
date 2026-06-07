@@ -458,7 +458,7 @@ def analyze_results(model, ctx):
         total_x = sum(x[u, v, idx].x for idx in range(K))
         if total_x > 0.01:
             x_res.append({'u': u, 'v': v, 'flow': total_x})
-    pd.DataFrame(x_res).to_csv(r"d:\高铁快运\problem3_x_flow.csv", index=False)
+    pd.DataFrame(x_res).to_csv(os.path.join(utils.OUTPUT_DIR, "problem3_x_flow.csv"), index=False)
     
     y_res = []
     for idx in range(K):
@@ -466,7 +466,7 @@ def analyze_results(model, ctx):
         if y_val > 0.01:
             row = od_list.iloc[idx]
             y_res.append({'i': row['from_code'], 'j': row['to_code'], 'flow': y_val})
-    pd.DataFrame(y_res).to_csv(r"d:\高铁快运\problem3_y_flow.csv", index=False)
+    pd.DataFrame(y_res).to_csv(os.path.join(utils.OUTPUT_DIR, "problem3_y_flow.csv"), index=False)
     
     print(f"\n  货流数据已保存: problem3_x_flow.csv, problem3_y_flow.csv")
     

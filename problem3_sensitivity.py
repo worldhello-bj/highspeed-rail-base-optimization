@@ -322,7 +322,8 @@ def run_sensitivity_analysis():
         'pig_cap': pig_cap_results,
     }
     
-    with open(r"d:\高铁快运\problem3_sensitivity_full.json", 'w', encoding='utf-8') as f:
+    path = os.path.join(utils.OUTPUT_DIR, "problem3_sensitivity_full.json")
+    with open(path, 'w', encoding='utf-8') as f:
         # Convert numpy types
         def convert(obj):
             if isinstance(obj, (np.integer,)): return int(obj)

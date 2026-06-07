@@ -1,17 +1,24 @@
+# ── 保留的重要输出 ──
+!data/*.csv
+!output/*.csv
+!output/*.json
+!output/images/*.png
+!reports/*.pdf
+!reports/*.tex
+!reports/*.docx
+
+# ── 排除的不必要文件 ──
 # Python
 __pycache__/
 *.py[cod]
 *.egg-info/
 dist/
 build/
+*.ipynb
 
 # Virtual environment
 .venv/
 venv/
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
 
 # IDE
 .vscode/
@@ -22,7 +29,7 @@ venv/
 Thumbs.db
 .DS_Store
 
-# LaTeX build artifacts (but keep final PDFs)
+# LaTeX build artifacts
 *.aux
 *.log
 *.out
@@ -44,20 +51,3 @@ package-lock.json
 
 # Git lock
 .git/index.lock
-__pycache__/
-
-# Keep these important outputs
-!report.pdf
-!problem3_report.pdf
-!problem3_sensitivity_report.pdf
-!problem1_report.pdf
-!problem2_report.pdf
-!problem1_detailed.pdf
-!math_models.pdf
-
-!problem5_results.json
-!problem6_results.json
-!problem3_sensitivity_full.json
-!problem3_min_satisfaction.json
-
-!docx_images/*.png

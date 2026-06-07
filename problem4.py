@@ -119,8 +119,8 @@ def main():
     print("=" * 60)
     
     try:
-        x_df = pd.read_csv(r"d:\高铁快运\problem3_x_flow.csv")
-        y_df = pd.read_csv(r"d:\高铁快运\problem3_y_flow.csv")
+        x_df = pd.read_csv(os.path.join(utils.OUTPUT_DIR, "problem3_x_flow.csv"))
+        y_df = pd.read_csv(os.path.join(utils.OUTPUT_DIR, "problem3_y_flow.csv"))
     except FileNotFoundError:
         print("请先运行 problem3.py 生成货流数据。")
         return

@@ -36,8 +36,8 @@ def main():
     main_stations = stations_df['code'].tolist()
     _, dists = utils.get_shortest_paths(G, main_stations)
     
-    x_df = pd.read_csv(r"d:\高铁快运\problem3_x_flow.csv")
-    y_df = pd.read_csv(r"d:\高铁快运\problem3_y_flow.csv")
+    x_df = pd.read_csv(os.path.join(utils.OUTPUT_DIR, "problem3_x_flow.csv"))
+    y_df = pd.read_csv(os.path.join(utils.OUTPUT_DIR, "problem3_y_flow.csv"))
     
     EMU_CAP = utils.EMU_CAPACITY_T
     EMU_FIXED = utils.EMU_FIXED_COST
@@ -286,7 +286,7 @@ def main():
         'bep_tons_per_day': bep_tons,
         'roi_annual': annual_net_profit / total_investment * 100,
     }
-    with open(r"d:\高铁快运\problem5_results.json", 'w', encoding='utf-8') as f:
+    with open(os.path.join(utils.OUTPUT_DIR, "problem5_results.json"), 'w', encoding='utf-8') as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print(f"\n  结果已保存至 problem5_results.json")
     

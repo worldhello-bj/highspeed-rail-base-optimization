@@ -395,7 +395,7 @@ def fill_section_6(doc, p):
     format_paragraph(p4)
     
     # 插入图 6-1
-    img1_path = r"d:\高铁快运\docx_images\section_flows.png"
+    img1_path = os.path.join(utils.IMAGES_DIR, "section_flows.png")
     p_img1 = insert_p_after(p4)
     p_img1.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
     r_img1 = p_img1.add_run()
@@ -442,7 +442,7 @@ def fill_section_6(doc, p):
     p_img2 = insert_p_after_element(tbl2._tbl, doc)
     p_img2.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
     r_img2 = p_img2.add_run()
-    img2_path = r"d:\高铁快运\docx_images\mode_split.png"
+    img2_path = os.path.join(utils.IMAGES_DIR, "mode_split.png")
     if os.path.exists(img2_path):
         r_img2.add_picture(img2_path, width=Inches(4.2))
         p_cap2 = insert_p_after(p_img2, "图 6-2：问题二模型下两种高铁快运运营模式货流量分担比例图")
@@ -518,7 +518,7 @@ def fill_section_6(doc, p):
     p_img3 = insert_p_after_element(tbl3._tbl, doc)
     p_img3.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
     r_img3 = p_img3.add_run()
-    img3_path = r"d:\高铁快运\docx_images\base_workloads.png"
+    img3_path = os.path.join(utils.IMAGES_DIR, "base_workloads.png")
     if os.path.exists(img3_path):
         r_img3.add_picture(img3_path, width=Inches(5.5))
         p_cap3 = insert_p_after(p_img3, "图 6-3：问题三优化选址基地货运处理量负荷与能力对比图")
@@ -542,7 +542,7 @@ def fill_section_6(doc, p):
     p17.runs[0].bold = True
     
     try:
-        y_df = pd.read_csv(r"d:\高铁快运\problem3_y_flow.csv")
+        y_df = pd.read_csv(os.path.join(utils.OUTPUT_DIR, "problem3_y_flow.csv"))
         y_df_sorted = y_df.sort_values(by='flow', ascending=False).head(8)
         
         tbl4 = insert_table_after(p17, len(y_df_sorted)+1, 4)
@@ -604,7 +604,7 @@ def fill_section_6(doc, p):
     p5_results = {}
     try:
         import json
-        with open(r"d:\高铁快运\problem5_results.json", 'r', encoding='utf-8') as f:
+        with open(os.path.join(utils.OUTPUT_DIR, "problem5_results.json"), 'r', encoding='utf-8') as f:
             p5_results = json.load(f)
     except:
         pass
@@ -635,7 +635,7 @@ def fill_section_6(doc, p):
     format_paragraph(p24c)
     
     # 插入图 6-4 敏感性分析
-    img5_path = r"d:\高铁快运\docx_images\sensitivity_analysis.png"
+    img5_path = os.path.join(utils.IMAGES_DIR, "sensitivity_analysis.png")
     if os.path.exists(img5_path):
         p_img5 = insert_p_after(p24c)
         p_img5.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
@@ -672,7 +672,7 @@ def fill_section_6(doc, p):
     format_paragraph(p26_7, first_line_indent=Pt(12))
     
     # 插入图 6-5 竞争对比
-    img6_path = r"d:\高铁快运\docx_images\modal_competition.png"
+    img6_path = os.path.join(utils.IMAGES_DIR, "modal_competition.png")
     if os.path.exists(img6_path):
         p_img6 = insert_p_after(p26_7)
         p_img6.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER

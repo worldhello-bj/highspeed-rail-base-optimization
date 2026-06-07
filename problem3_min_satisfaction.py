@@ -413,7 +413,8 @@ def main():
         if isinstance(obj, list): return [convert(v) for v in obj]
         return obj
     
-    with open(r"d:\高铁快运\problem3_min_satisfaction.json", 'w', encoding='utf-8') as f:
+    path = os.path.join(utils.OUTPUT_DIR, "problem3_min_satisfaction.json")
+    with open(path, 'w', encoding='utf-8') as f:
         json.dump(convert(results), f, ensure_ascii=False, indent=2)
     
     print(f"\n结果已保存至 problem3_min_satisfaction.json")

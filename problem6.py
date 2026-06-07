@@ -268,7 +268,7 @@ def main():
         'radar_scores': {mode_short[k]: v for k, v in scores.items()},
         'radar_dimensions': dimensions,
     }
-    with open(r"d:\高铁快运\problem6_results.json", 'w', encoding='utf-8') as f:
+    with open(os.path.join(utils.OUTPUT_DIR, "problem6_results.json"), 'w', encoding='utf-8') as f:
         json.dump(results, f, ensure_ascii=False, indent=2, default=str)
     print(f"\n  结果已保存至 problem6_results.json")
     
