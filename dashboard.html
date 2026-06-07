@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高铁快运基地选址与规模优化 — 可视化决策系统</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root {
+  --bg: #f0f2f5; --card: #fff; --primary: #1a73e8; --success: #0d904f;
+  --warning: #e37400; --danger: #d93025; --text: #202124; --text2: #5f6368;
+  --border: #dadce0; --shadow: 0 1px 3px rgba(0,0,0,.12);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background:var(--bg); color:var(--text); }
+.app { max-width:1400px; margin:0 auto; padding:16px; }
+.header { background:linear-gradient(135deg, #1a237e, #0d47a1); color:#fff; padding:20px 24px; border-radius:12px; margin-bottom:16px; }
+.header h1 { font-size:22px; font-weight:600; }
+.header p { opacity:.85; margin-top:4px; font-size:13px; }
+.nav { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.nav-btn { padding:8px 18px; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; background:var(--card); color:var(--text2); border:1px solid var(--border); transition:all .2s; }
+.nav-btn:hover { border-color:var(--primary); color:var(--primary); }
+.nav-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.card { background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); }
+.card h3 { font-size:14px; color:var(--text2); margin-bottom:12px; font-weight:500; }
+.kpi-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.kpi { flex:1; min-width:120px; background:var(--card); border-radius:10px; padding:14px; box-shadow:var(--shadow); text-align:center; }
+.kpi .val { font-size:24px; font-weight:700; }
+.kpi .lbl { font-size:11px; color:var(--text2); margin-top:4px; }
+.kpi.green .val { color:var(--success); }
+.kpi.blue .val { color:var(--primary); }
+.kpi.orange .val { color:var(--warning); }
+.kpi.red .val { color:var(--danger); }
+.chart { width:100%; height:350px; }
+.chart-sm { width:100%; height:280px; }
+.chart-lg { width:100%; height:420px; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th, td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); }
+th { background:#f8f9fa; font-weight:600; color:var(--text2); }
+tr:hover { background:#f8f9fa; }
+.tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:500; }
+.tag-green { background:#e6f4ea; color:#137333; }
+.tag-red { background:#fce8e6; color:#c5221f; }
+.tag-blue { background:#e8f0fe; color:#1967d2; }
+@media (max-width:768px) { .grid2,.grid3 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div id="app">
+<div class="app">
+  <div class="header">
+    <h1>🚄 高铁快运基地选址与规模优化 — 可视化决策系统</h1>
+    <p>北京交通大学 · 现代交通运输系统智能优化实训 | 6大问题综合看板</p>
+  </div>
+
+  <div class="nav">
+    <button v-for="t in tabs" :key="t.id" @click="tab=t.id"
+     :class="['nav-btn', {active: tab===t.id}]">{{ t.icon }} {{ t.label }}</button>
+  </div>
+
+  <!-- ===== OVERVIEW ===== -->
+  <div v-if="tab==='overview'">
+    <div class="kpi-row">
+      <div class="kpi blue"><div class="val">{{data.p2.satPct}}%</div><div class="lbl">P2 需求满足率</div></div>
+      <div class="kpi green"><div class="val">{{fmtWan(data.p3.economics.profit)}}万</div><div class="lbl">P3 日均净利润</div></div>
+      <div class="kpi blue"><div class="val">{{data.p3.economics.satPct}}%</div><div class="lbl">P3 最优满足率</div></div>
+      <div class="kpi green"><div class="val">{{data.p5.paybackMonths.toFixed(1)}}月</div><div class="lbl">P5 投资回收期</div></div>
+      <div class="kpi blue"><div class="val">{{data.p5.irr.toFixed(0)}}%</div><div class="lbl">P5 IRR</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>六题逻辑递进</h3>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:16px 0">
+          <span class="tag tag-blue">P1 最短路</span><span style="color:var(--text2)">→</span>
+          <span class="tag tag-blue">P2 MCMF</span><span style="color:var(--text2)">→</span>
+          <span class="tag tag-green">P3 选址★</span><span style="color:var(--text2)">→</span>
+          <span class="tag tag-blue">P4 开行</span><span style="color:var(--text2)">→</span>
+          <span class="tag tag-blue">P5 财务</span><span style="color:var(--text2)">→</span>
+          <span class="tag tag-blue">P6 竞争</span>
+        </div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.8">
+        P1确认线路能力充裕 → P2验证100%满足可行但吨利仅420元 → 
+        <b style="color:var(--success)">P3核心：战略性放弃58.8%低收益货流，吨利跃升至2748元（6.5×）</b> → 
+        P4落地为可执行列车方案 → P5验证8.2月回本 → P6市场定位
+        </p>
+      </div>
+      <div class="card"><h3>P2 vs P3 利润对比</h3><div class="chart-sm" ref="overviewCompare"></div></div>
+      <div class="card"><h3>P3 选址总览</h3><div class="chart" ref="overviewMap"></div></div>
+      <div class="card"><h3>P5 20年现金流</h3><div class="chart-sm" ref="overviewNPV"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== P1 ===== -->
+  <div v-if="tab==='p1'">
+    <div class="kpi-row">
+      <div class="kpi blue"><div class="val">34</div><div class="lbl">路网节点</div></div>
+      <div class="kpi blue"><div class="val">1908.4t</div><div class="lbl">总需求/日</div></div>
+      <div class="kpi green"><div class="val">0</div><div class="lbl">超限区段</div></div>
+      <div class="kpi blue"><div class="val">78.7%</div><div class="lbl">最大饱和度</div></div>
+      <div class="kpi blue"><div class="val">980km</div><div class="lbl">平均运距</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>路网拓扑与断面流量</h3><div class="chart-lg" ref="p1Network"></div></div>
+      <div class="card"><h3>区段能力校核 TOP-15</h3><div class="chart-lg" ref="p1Bars"></div></div>
+      <div class="card"><h3>OD距离分布</h3><div class="chart" ref="p1Dist"></div></div>
+      <div class="card"><h3>无向断面 TOP-10</h3><div class="chart" ref="p1Undirected"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== P2 ===== -->
+  <div v-if="tab==='p2'">
+    <div class="kpi-row">
+      <div class="kpi green"><div class="val">{{data.p2.satPct}}%</div><div class="lbl">需求满足率</div></div>
+      <div class="kpi blue"><div class="val">{{fmtWan(data.p2.totalCost)}}万</div><div class="lbl">最小总费用/日</div></div>
+      <div class="kpi blue"><div class="val">{{data.p2.marginPerTon}}元</div><div class="lbl">吨均毛利</div></div>
+      <div class="kpi blue"><div class="val">{{data.p2.emuPct}}%</div><div class="lbl">EMU分担率</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>模式分担</h3><div class="chart" ref="p2Pie"></div></div>
+      <div class="card"><h3>成本结构</h3><div class="chart" ref="p2Cost"></div></div>
+      <div class="card"><h3>区段利用率 TOP-10</h3><div class="chart" ref="p2EdgeUtil"></div></div>
+      <div class="card"><h3>P2 vs P3 吨利对比</h3><div class="chart" ref="p2Compare"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== P3 ===== -->
+  <div v-if="tab==='p3'">
+    <div class="kpi-row">
+      <div class="kpi green"><div class="val">{{fmtWan(data.p3.economics.profit)}}万</div><div class="lbl">日均净利润</div></div>
+      <div class="kpi blue"><div class="val">{{data.p3.economics.satPct}}%</div><div class="lbl">最优满足率</div></div>
+      <div class="kpi blue"><div class="val">{{data.p3.economics.margin}}%</div><div class="lbl">利润率</div></div>
+      <div class="kpi blue"><div class="val">{{data.p3.economics.investment}}亿</div><div class="lbl">总投资</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>选址决策地图</h3><div class="chart-lg" ref="p3Map"></div></div>
+      <div class="card"><h3>基地负荷</h3><div class="chart" ref="p3Load"></div></div>
+    </div>
+    <div class="grid3" style="margin-top:16px">
+      <div class="card"><h3>收入结构</h3><div class="chart-sm" ref="p3Revenue"></div></div>
+      <div class="card"><h3>成本结构</h3><div class="chart-sm" ref="p3Cost"></div></div>
+      <div class="card"><h3>货流分担格局</h3><div class="chart-sm" ref="p3Flow"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== P4 ===== -->
+  <div v-if="tab==='p4'">
+    <div class="kpi-row">
+      <div class="kpi blue"><div class="val">{{data.p4.emuTotalTrains}}列</div><div class="lbl">EMU日开行列数</div></div>
+      <div class="kpi blue"><div class="val">{{data.p4.pigTotalTrains}}列</div><div class="lbl">捎带日开行列数</div></div>
+      <div class="kpi blue"><div class="val">{{data.p4.pigTotalFlow}}t</div><div class="lbl">捎带日承运量</div></div>
+      <div class="kpi green"><div class="val">4列</div><div class="lbl">最大区间EMU</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>EMU骨干班列路由</h3><div class="chart-lg" ref="p4Routes"></div></div>
+      <div class="card"><h3>捎带TOP-10 OD</h3><div class="chart" ref="p4PigTop"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== P5 ===== -->
+  <div v-if="tab==='p5'">
+    <div class="kpi-row">
+      <div class="kpi green"><div class="val">{{data.p5.paybackMonths.toFixed(1)}}月</div><div class="lbl">投资回收期</div></div>
+      <div class="kpi blue"><div class="val">{{data.p5.irr.toFixed(0)}}%</div><div class="lbl">IRR</div></div>
+      <div class="kpi blue"><div class="val">{{data.p5.npv.toFixed(1)}}亿</div><div class="lbl">20年NPV</div></div>
+      <div class="kpi green"><div class="val">{{data.p5.roi.toFixed(0)}}%</div><div class="lbl">ROI/年</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>20年累计现金流</h3><div class="chart-lg" ref="p5NPV"></div></div>
+      <div class="card"><h3>需求波动敏感性</h3><div class="chart" ref="p5SensDemand"></div></div>
+      <div class="card"><h3>运价费率敏感性</h3><div class="chart" ref="p5SensRate"></div></div>
+      <div class="card"><h3>盈亏平衡分析</h3><div class="chart" ref="p5BEP"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== P6 ===== -->
+  <div v-if="tab==='p6'">
+    <div class="grid2">
+      <div class="card"><h3>综合竞争力雷达图</h3><div class="chart-lg" ref="p6Radar"></div></div>
+      <div class="card"><h3>运输成本-距离曲线（200吨）</h3><div class="chart-lg" ref="p6CostDist"></div></div>
+      <div class="card"><h3>碳排放对比</h3><div class="chart" ref="p6Carbon"></div></div>
+      <div class="card"><h3>战略定位建议</h3>
+        <div style="padding:12px;font-size:13px;line-height:2">
+          <p>🎯 <b>定位</b>：500-1500km时效敏感型高附加值货物</p>
+          <p>⏱ <b>时效</b>：250km/h，当日达/次晨达</p>
+          <p>🎯 <b>准点</b>：99% vs 航空75%</p>
+          <p>🌿 <b>低碳</b>：碳排放仅航空1/30（0.02 vs 0.60 kg/t·km）</p>
+          <p>💰 <b>价格</b>：不拼纯价格，拼时效+可靠性溢价</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const { createApp, ref, onMounted, nextTick, watch } = Vue;
+
+const app = createApp({
+  setup() {
+    const tab = ref('overview');
+    const data = ref({p1:{},p2:{},p3:{economics:{},locations:[],baseLoad:[]},p4:{},p5:{sensitivity:{demand:[],rate:[]},cashFlows:[]},p6:{costDistance:[],radarScores:{},radarDims:[]}});
+    const tabs = [
+      {id:'overview',label:'📊 总览',icon:''},
+      {id:'p1',label:'P1 最短路',icon:'🔍'},
+      {id:'p2',label:'P2 最大流',icon:'📈'},
+      {id:'p3',label:'P3 选址★',icon:'📍'},
+      {id:'p4',label:'P4 开行',icon:'🚅'},
+      {id:'p5',label:'P5 财务',icon:'💰'},
+      {id:'p6',label:'P6 竞争',icon:'⚔️'},
+    ];
+
+    // Refs for chart containers
+    const chartRefs = {};
+
+    const fmtWan = (v) => (v/1e4).toFixed(1);
+
+    function initChart(refName) {
+      const el = chartRefs[refName];
+      if (!el) return null;
+      let instance = echarts.getInstanceByDom(el);
+      if (!instance) instance = echarts.init(el);
+      return instance;
+    }
+
+    function renderOverview() {
+      // Compare chart
+      const c1 = initChart('overviewCompare');
+      if (c1) c1.setOption({
+        tooltip:{trigger:'axis'},
+        legend:{data:['P2 全部满足','P3 最优取舍'],bottom:0},
+        grid:{left:50,right:20,top:10,bottom:30},
+        xAxis:{data:['吨均毛利(元/t)','利润率(%)','EMU分担(%)']},
+        yAxis:{},
+        series:[
+          {name:'P2 全部满足',type:'bar',data:[420,11,63.5],itemStyle:{color:'#5f6368'},barGap:'10%'},
+          {name:'P3 最优取舍',type:'bar',data:[2748,76.9,12.2],itemStyle:{color:'#0d904f'}},
+        ]
+      });
+
+      // Overview Map
+      const c2 = initChart('overviewMap');
+      if (c2) {
+        const locs = data.value.p3.locations || [];
+        c2.setOption({
+          tooltip:{},
+          series:[{
+            type:'graph',layout:'force',roam:true,force:{repulsion:300,edgeLength:150},
+            data: locs.map(l=>({
+              name:l.name, itemStyle:{color:l.built?'#0d904f':'#d93025'},
+              symbolSize:l.built?28:14, label:{show:true,fontSize:11}
+            })),
+            links: (data.value.p3.locations||[]).filter(l=>l.built).flatMap((l,i,arr)=>
+              arr.slice(i+1).map(r=>({source:l.name,target:r.name,lineStyle:{color:'#0d904f',width:1,opacity:.4}}))
+            )
+          }]
+        });
+      }
+
+      // NPV
+      const c3 = initChart('overviewNPV');
+      if (c3 && data.value.p5.cashFlows) {
+        const cf = data.value.p5.cashFlows;
+        c3.setOption({
+          tooltip:{trigger:'axis'},
+          grid:{left:50,right:20,top:10,bottom:30},
+          xAxis:{data:cf.map(c=>'Y'+c.year),axisLabel:{interval:4}},
+          yAxis:{name:'亿元'},
+          series:[
+            {name:'累计现金流',type:'line',data:cf.map(c=>c.cumulative),smooth:true,areaStyle:{opacity:.1},itemStyle:{color:'#1a73e8'}},
+            {name:'折现现金流',type:'line',data:cf.map(c=>c.discounted),smooth:true,itemStyle:{color:'#0d904f'}},
+          ]
+        });
+      }
+    }
+
+    function renderP1() {
+      // Network topology
+      const c1 = initChart('p1Network');
+      if (c1) {
+        const nodes = data.value.p1.nodes || [];
+        const edges = data.value.p1.edges || [];
+        c1.setOption({
+          tooltip:{formatter:p=>p.dataType==='node'?'<b>'+p.name+'</b>':p.data.source+'→'+p.data.target+'<br/>'+p.data.distance+'km'},
+          series:[{
+            type:'graph',layout:'force',roam:true,force:{repulsion:200,edgeLength:[100,400]},
+            data: nodes.map(n=>({
+              name:n.id, itemStyle:{color:n.isCandidate?'#1a73e8':'#dadce0'},
+              symbolSize:n.isMain?18:6, label:{show:n.isMain,fontSize:n.isMain?9:0}
+            })),
+            links: edges.map(e=>({source:e.source,target:e.target,lineStyle:{width:1,opacity:.3},label:{show:false}}))
+          }]
+        });
+      }
+
+      // Edge flow bars
+      const c2 = initChart('p1Bars');
+      if (c2) {
+        const ef = (data.value.p1.edgeFlows||[]).slice(0,15);
+        c2.setOption({
+          tooltip:{trigger:'axis'},
+          grid:{left:120,right:50,top:5,bottom:20},
+          xAxis:{type:'value',name:'吨/日',max:700},
+          yAxis:{type:'category',data:ef.map(e=>e.edge).reverse(),axisLabel:{fontSize:10}},
+          series:[
+            {type:'bar',data:ef.map(e=>e.flow).reverse(),itemStyle:{color:p=>p.value>680?'#d93025':'#1a73e8'},
+             markLine:{data:[{xAxis:680,label:{formatter:'680t 上限'},lineStyle:{color:'#d93025',type:'dashed'}}]}}
+          ]
+        });
+      }
+
+      // OD dist
+      const c3 = initChart('p1Dist');
+      if (c3) {
+        const od = data.value.p1.odDist||[];
+        c3.setOption({
+          tooltip:{trigger:'axis'},
+          grid:{left:50,right:50,top:5,bottom:30},
+          xAxis:{data:od.map(d=>d.label)},
+          yAxis:[{type:'value',name:'需求(吨)'},{type:'value',name:'OD对数'}],
+          series:[
+            {name:'需求',type:'bar',data:od.map(d=>d.demand),itemStyle:{color:'#1a73e8'}},
+            {name:'OD对数',type:'line',yAxisIndex:1,data:od.map(d=>d.count),itemStyle:{color:'#e37400'}},
+          ]
+        });
+      }
+
+      // Undirected top
+      const c4 = initChart('p1Undirected');
+      if (c4) {
+        const ef = (data.value.p1.edgeFlows||[]).slice(0,10);
+        c4.setOption({
+          tooltip:{trigger:'axis'},
+          grid:{left:100,right:20,top:5,bottom:20},
+          yAxis:{type:'category',data:ef.map(e=>e.edge).reverse(),axisLabel:{fontSize:9}},
+          xAxis:{type:'value',name:'吨/日'},
+          series:[{type:'bar',data:ef.map(e=>e.flow).reverse(),itemStyle:{color:'#0d904f'},
+            label:{show:true,position:'right',fontSize:10,formatter:p=>p.value.toFixed(0)+'t'}}]
+        });
+      }
+    }
+
+    function renderP2() {
+      const p2 = data.value.p2;
+      const c1 = initChart('p2Pie');
+      if (c1) c1.setOption({
+        tooltip:{trigger:'item'},legend:{bottom:0},
+        series:[{type:'pie',radius:['40%','70%'],center:['50%','45%'],
+          data:[{value:p2.emuTons,name:'EMU '+p2.emuPct+'%',itemStyle:{color:'#1a73e8'}},
+                {value:p2.pigTons,name:'捎带 '+p2.pigPct+'%',itemStyle:{color:'#0d904f'}}]}]
+      });
+
+      const c2 = initChart('p2Cost');
+      if (c2) c2.setOption({
+        tooltip:{trigger:'item'},legend:{bottom:0},
+        series:[{type:'pie',radius:'55%',center:['50%','45%'],
+          data:[{value:5936829,name:'EMU运行费',itemStyle:{color:'#1a73e8'}},
+                {value:349223,name:'EMU装卸费',itemStyle:{color:'#4285f4'}},
+                {value:166987,name:'捎带装卸费',itemStyle:{color:'#0d904f'}}]}]
+      });
+
+      const c3 = initChart('p2EdgeUtil');
+      if (c3) c3.setOption({
+        tooltip:{trigger:'axis'},
+        grid:{left:100,right:20,top:5,bottom:20},
+        yAxis:{type:'category',data:['杭→HZ_huzhou','HZ_huzhou→杭','HZ_huzhou→宁','宁→HZ_huzhou','JJ→AQ','AQ→JJ','宁→WH_wuhu','WH_wuhu→宁','AQ→WH_wuhu','WH_wuhu→AQ'].reverse(),axisLabel:{fontSize:8}},
+        xAxis:{type:'value',name:'吨/日',max:350},
+        series:[{type:'bar',data:[319,319,319,319,269,269,267,267,267,267].reverse(),itemStyle:{color:'#e37400'}}]
+      });
+
+      const c4 = initChart('p2Compare');
+      if (c4) c4.setOption({
+        tooltip:{trigger:'axis'},legend:{data:['P2全满足','P3最优'],bottom:0},
+        grid:{left:50,right:20,top:10,bottom:35},
+        xAxis:{data:['吨均毛利','利润率%','EMU分担%','满足率%']},
+        yAxis:{},
+        series:[
+          {name:'P2全满足',type:'bar',data:[420,11,63.5,100],itemStyle:{color:'#5f6368'}},
+          {name:'P3最优',type:'bar',data:[2748,76.9,12.2,41.2],itemStyle:{color:'#0d904f'}},
+        ]
+      });
+    }
+
+    function renderP3() {
+      const p3 = data.value.p3;
+      const c1 = initChart('p3Map');
+      if (c1) c1.setOption({
+        tooltip:{},
+        series:[{type:'graph',layout:'force',roam:true,force:{repulsion:280},
+          data: (p3.locations||[]).map(l=>({
+            name:l.name, itemStyle:{color:l.built?'#0d904f':'#d93025'},
+            symbolSize:l.built?32:16, label:{show:true,fontSize:12,formatter:p=>p.name+(l.built?' ✓':' ✗')}
+          })),
+        }]
+      });
+
+      const c2 = initChart('p3Load');
+      if (c2) c2.setOption({
+        tooltip:{trigger:'axis'},
+        grid:{left:55,right:20,top:5,bottom:30},
+        xAxis:{data:(p3.baseLoad||[]).map(b=>b.name)},
+        yAxis:{name:'吨/日'},
+        series:[{type:'bar',data:(p3.baseLoad||[]).map(b=>b.load),itemStyle:{color:'#0d904f'},
+          markLine:{data:[{yAxis:85,label:{formatter:'能力上限85t'},lineStyle:{color:'#d93025'}}]}}]
+      });
+
+      const c3 = initChart('p3Revenue');
+      if (c3) c3.setOption({
+        tooltip:{trigger:'item'},legend:{bottom:0},
+        series:[{type:'pie',radius:'55%',
+          data:[{value:495156,name:'EMU收入',itemStyle:{color:'#1a73e8'}},
+                {value:2313133,name:'捎带收入',itemStyle:{color:'#0d904f'}}]}]
+      });
+
+      const c4 = initChart('p3Cost');
+      if (c4) c4.setOption({
+        tooltip:{trigger:'item'},legend:{bottom:0},
+        series:[{type:'pie',radius:'50%',center:['50%','45%'],
+          data:[{value:75945,name:'建设折旧',itemStyle:{color:'#5f6368'}},
+                {value:330659,name:'EMU运行',itemStyle:{color:'#1a73e8'}},
+                {value:165547,name:'捎带装卸',itemStyle:{color:'#0d904f'}},
+                {value:77198,name:'其他',itemStyle:{color:'#dadce0'}}]}]
+      });
+
+      const c5 = initChart('p3Flow');
+      if (c5) c5.setOption({
+        tooltip:{trigger:'item'},legend:{bottom:0},
+        series:[{type:'pie',radius:['35%','60%'],center:['50%','45%'],
+          data:[{value:95.8,name:'EMU 12.2%',itemStyle:{color:'#1a73e8'}},
+                {value:689.8,name:'捎带 87.8%',itemStyle:{color:'#0d904f'}},
+                {value:1122.8,name:'放弃 58.8%',itemStyle:{color:'#dadce0'}}]}]
+      });
+    }
+
+    function renderP4() {
+      const c1 = initChart('p4Routes');
+      if (c1) {
+        const routes = data.value.p4.emuRoutes||[];
+        c1.setOption({
+          tooltip:{trigger:'axis'},
+          grid:{left:130,right:60,top:5,bottom:30},
+          yAxis:{type:'category',data:routes.map(r=>r.path.join('→')).reverse(),axisLabel:{fontSize:9}},
+          xAxis:{type:'value',name:'km'},
+          series:[
+            {name:'距离',type:'bar',data:routes.map(r=>r.dist).reverse(),itemStyle:{color:'#1a73e8'},
+             label:{show:true,position:'right',fontSize:10,formatter:p=>p.value+'km'}}
+          ]
+        });
+      }
+
+      const c2 = initChart('p4PigTop');
+      if (c2) {
+        const pr = data.value.p4.pigRoutes||[];
+        c2.setOption({
+          tooltip:{trigger:'axis'},
+          grid:{left:100,right:20,top:5,bottom:20},
+          yAxis:{type:'category',data:pr.map(r=>r.from+'→'+r.to).reverse(),axisLabel:{fontSize:9}},
+          xAxis:{type:'value',name:'吨/日'},
+          series:[{type:'bar',data:pr.map(r=>r.flow).reverse(),itemStyle:{color:'#0d904f'}}]
+        });
+      }
+    }
+
+    function renderP5() {
+      const p5 = data.value.p5;
+      const c1 = initChart('p5NPV');
+      if (c1 && p5.cashFlows) c1.setOption({
+        tooltip:{trigger:'axis'},legend:{data:['累计现金流','年现金流','折现现金流'],bottom:0},
+        grid:{left:50,right:20,top:10,bottom:30},
+        xAxis:{data:p5.cashFlows.map(c=>c.year),name:'年份',axisLabel:{interval:4}},
+        yAxis:{name:'亿元'},
+        series:[
+          {name:'累计现金流',type:'line',data:p5.cashFlows.map(c=>c.cumulative),smooth:true,itemStyle:{color:'#0d904f'}},
+          {name:'年现金流',type:'bar',data:p5.cashFlows.map(c=>c.cashFlow),itemStyle:{color:'#1a73e8',opacity:.6}},
+          {name:'折现现金流',type:'line',data:p5.cashFlows.map(c=>c.discounted),smooth:true,itemStyle:{color:'#e37400'}},
+        ]
+      });
+
+      const c2 = initChart('p5SensDemand');
+      if (c2) c2.setOption({
+        tooltip:{trigger:'axis'},
+        grid:{left:50,right:20,top:5,bottom:30},
+        xAxis:{data:(p5.sensitivity.demand||[]).map(d=>d.change+'%')},
+        yAxis:{name:'年净利(亿)'},
+        series:[{type:'bar',data:(p5.sensitivity.demand||[]).map(d=>d.profit),
+          itemStyle:{color:params=>params.value<0?'#d93025':'#0d904f'}}]
+      });
+
+      const c3 = initChart('p5SensRate');
+      if (c3) c3.setOption({
+        tooltip:{trigger:'axis'},
+        grid:{left:50,right:20,top:5,bottom:30},
+        xAxis:{data:(p5.sensitivity.rate||[]).map(d=>d.change+'%')},
+        yAxis:{name:'年净利(亿)'},
+        series:[{type:'bar',data:(p5.sensitivity.rate||[]).map(d=>d.profit),itemStyle:{color:'#1a73e8'}}]
+      });
+
+      const c4 = initChart('p5BEP');
+      if (c4) c4.setOption({
+        tooltip:{trigger:'axis'},legend:{data:['总收入','总成本','固定成本'],bottom:0},
+        grid:{left:60,right:20,top:10,bottom:30},
+        xAxis:{name:'货量(吨/日)',max:100},
+        yAxis:{name:'万元/日'},
+        series:[
+          {name:'总收入',type:'line',data:[[0,0],[26,p5.dailyRevenue/1e4*26/790],[100,p5.dailyRevenue/1e4*100/790]],smooth:true,itemStyle:{color:'#0d904f'}},
+          {name:'总成本',type:'line',data:[[0,p5.dailyCost/1e4-p5.dailyRevenue/1e4*26/790],[26,p5.dailyCost/1e4],[100,p5.dailyCost/1e4]],itemStyle:{color:'#d93025'}},
+          {name:'固定成本',type:'line',data:[[0,7.6],[100,7.6]],lineStyle:{type:'dashed',color:'#5f6368'}},
+        ]
+      });
+    }
+
+    function renderP6() {
+      const p6 = data.value.p6;
+      const c1 = initChart('p6Radar');
+      if (c1) {
+        const modes = p6.radarScores||{};
+        c1.setOption({
+          tooltip:{},legend:{data:Object.keys(modes),bottom:0},
+          radar:{indicator:p6.radarDims.map(d=>({name:d,max:10})),radius:'60%'},
+          series:[{type:'radar',data:Object.entries(modes).map(([k,v])=>({name:k,value:v}))}]
+        });
+      }
+
+      const c2 = initChart('p6CostDist');
+      if (c2) c2.setOption({
+        tooltip:{trigger:'axis'},legend:{data:['高铁快运','航空货运','公路卡车'],bottom:0},
+        grid:{left:50,right:20,top:10,bottom:30},
+        xAxis:{data:(p6.costDistance||[]).map(d=>d.distance+'km'),name:'距离'},
+        yAxis:{name:'万元'},
+        series:[
+          {name:'高铁快运',type:'line',data:(p6.costDistance||[]).map(d=>d.highSpeedRail),itemStyle:{color:'#1a73e8'}},
+          {name:'航空货运',type:'line',data:(p6.costDistance||[]).map(d=>d.air),itemStyle:{color:'#d93025'}},
+          {name:'公路卡车',type:'line',data:(p6.costDistance||[]).map(d=>d.truck),itemStyle:{color:'#0d904f'}},
+        ]
+      });
+
+      const c3 = initChart('p6Carbon');
+      if (c3) c3.setOption({
+        tooltip:{trigger:'axis'},legend:{data:['高铁','航空','公路'],bottom:0},
+        grid:{left:50,right:20,top:10,bottom:30},
+        xAxis:{data:(p6.carbonData||[]).map(d=>d.distance+'km')},
+        yAxis:{name:'吨CO2'},
+        series:[
+          {name:'高铁',type:'bar',data:(p6.carbonData||[]).map(d=>d.highSpeedRail),itemStyle:{color:'#0d904f'}},
+          {name:'航空',type:'bar',data:(p6.carbonData||[]).map(d=>d.air),itemStyle:{color:'#d93025'}},
+          {name:'公路',type:'bar',data:(p6.carbonData||[]).map(d=>d.truck),itemStyle:{color:'#e37400'}},
+        ]
+      });
+    }
+
+    function renderAll() {
+      nextTick(() => {
+        if (tab.value==='overview') renderOverview();
+        else if (tab.value==='p1') renderP1();
+        else if (tab.value==='p2') renderP2();
+        else if (tab.value==='p3') renderP3();
+        else if (tab.value==='p4') renderP4();
+        else if (tab.value==='p5') renderP5();
+        else if (tab.value==='p6') renderP6();
+      });
+    }
+
+    onMounted(async () => {
+      try {
+        const resp = await fetch('output/dashboard_data.json');
+        data.value = await resp.json();
+      } catch(e) {
+        console.error('Failed to load data:', e);
+      }
+      // Register all chart refs
+      document.querySelectorAll('[class*="chart"]').forEach(el => {
+        const refName = [...el.classList].find(c=>c.startsWith('chart') && c!=='chart');
+        if (refName) chartRefs[refName] = el;
+      });
+      renderAll();
+    });
+
+    watch(tab, () => renderAll());
+
+    return { tab, tabs, data, fmtWan };
+  }
+});
+
+app.mount('#app');
+</script>
+</body>
+</html>

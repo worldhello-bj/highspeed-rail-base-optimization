@@ -1,0 +1,1141 @@
+{
+  "p1": {
+    "nodes": [
+      {
+        "id": "AQ",
+        "name": "AQ",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "BB",
+        "name": "蚌埠",
+        "isMain": true,
+        "isCandidate": false
+      },
+      {
+        "id": "CD",
+        "name": "成都",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "CQ",
+        "name": "重庆",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "CS",
+        "name": "长沙",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "CZ",
+        "name": "CZ",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "ES",
+        "name": "ES",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "FL",
+        "name": "FL",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "GY",
+        "name": "贵阳",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "HF",
+        "name": "合肥",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "HH",
+        "name": "HH",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "HZ",
+        "name": "杭州",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "HZ_huzhou",
+        "name": "HZ_huzhou",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "JJ",
+        "name": "JJ",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "JM",
+        "name": "JM",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "JX",
+        "name": "JX",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "LA",
+        "name": "LA",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "MC",
+        "name": "MC",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "NC",
+        "name": "南昌",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "NJ",
+        "name": "南京",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "NT",
+        "name": "南通",
+        "isMain": true,
+        "isCandidate": false
+      },
+      {
+        "id": "SH",
+        "name": "上海",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "TC",
+        "name": "TC",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "TM",
+        "name": "TM",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "TZ",
+        "name": "TZ",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "WH",
+        "name": "武汉",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "WH_wuhu",
+        "name": "WH_wuhu",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "WZ",
+        "name": "WZ",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "XS",
+        "name": "XS",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "XY",
+        "name": "XY",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "XZ",
+        "name": "徐州",
+        "isMain": true,
+        "isCandidate": true
+      },
+      {
+        "id": "YC",
+        "name": "宜昌",
+        "isMain": true,
+        "isCandidate": false
+      },
+      {
+        "id": "YZ",
+        "name": "YZ",
+        "isMain": false,
+        "isCandidate": false
+      },
+      {
+        "id": "ZZ",
+        "name": "郑州",
+        "isMain": true,
+        "isCandidate": true
+      }
+    ],
+    "edges": [
+      {
+        "source": "SH",
+        "target": "JX",
+        "distance": 84
+      },
+      {
+        "source": "SH",
+        "target": "TC",
+        "distance": 33
+      },
+      {
+        "source": "JX",
+        "target": "HZ",
+        "distance": 75
+      },
+      {
+        "source": "HZ",
+        "target": "HZ_huzhou",
+        "distance": 71
+      },
+      {
+        "source": "HZ_huzhou",
+        "target": "NJ",
+        "distance": 185
+      },
+      {
+        "source": "NJ",
+        "target": "CZ",
+        "distance": 34
+      },
+      {
+        "source": "NJ",
+        "target": "YZ",
+        "distance": 101
+      },
+      {
+        "source": "NJ",
+        "target": "WH_wuhu",
+        "distance": 85
+      },
+      {
+        "source": "CZ",
+        "target": "HF",
+        "distance": 112
+      },
+      {
+        "source": "CZ",
+        "target": "BB",
+        "distance": 115
+      },
+      {
+        "source": "HF",
+        "target": "LA",
+        "distance": 68
+      },
+      {
+        "source": "HF",
+        "target": "BB",
+        "distance": 130
+      },
+      {
+        "source": "HF",
+        "target": "AQ",
+        "distance": 163
+      },
+      {
+        "source": "LA",
+        "target": "MC",
+        "distance": 174
+      },
+      {
+        "source": "MC",
+        "target": "WH",
+        "distance": 107
+      },
+      {
+        "source": "WH",
+        "target": "TM",
+        "distance": 110
+      },
+      {
+        "source": "WH",
+        "target": "CS",
+        "distance": 362
+      },
+      {
+        "source": "WH",
+        "target": "ZZ",
+        "distance": 536
+      },
+      {
+        "source": "WH",
+        "target": "JJ",
+        "distance": 223
+      },
+      {
+        "source": "WH",
+        "target": "XY",
+        "distance": 281
+      },
+      {
+        "source": "TM",
+        "target": "JM",
+        "distance": 126
+      },
+      {
+        "source": "JM",
+        "target": "YC",
+        "distance": 70
+      },
+      {
+        "source": "YC",
+        "target": "XS",
+        "distance": 378
+      },
+      {
+        "source": "YC",
+        "target": "ES",
+        "distance": 234
+      },
+      {
+        "source": "XS",
+        "target": "WZ",
+        "distance": 246
+      },
+      {
+        "source": "XS",
+        "target": "XY",
+        "distance": 189
+      },
+      {
+        "source": "WZ",
+        "target": "CQ",
+        "distance": 245
+      },
+      {
+        "source": "CQ",
+        "target": "CD",
+        "distance": 292
+      },
+      {
+        "source": "CQ",
+        "target": "GY",
+        "distance": 345
+      },
+      {
+        "source": "CQ",
+        "target": "FL",
+        "distance": 88
+      },
+      {
+        "source": "CD",
+        "target": "GY",
+        "distance": 648
+      },
+      {
+        "source": "CS",
+        "target": "HH",
+        "distance": 332
+      },
+      {
+        "source": "CS",
+        "target": "NC",
+        "distance": 342
+      },
+      {
+        "source": "HH",
+        "target": "GY",
+        "distance": 374
+      },
+      {
+        "source": "ZZ",
+        "target": "XZ",
+        "distance": 362
+      },
+      {
+        "source": "ZZ",
+        "target": "XY",
+        "distance": 389
+      },
+      {
+        "source": "XZ",
+        "target": "BB",
+        "distance": 156
+      },
+      {
+        "source": "YZ",
+        "target": "TZ",
+        "distance": 45
+      },
+      {
+        "source": "TZ",
+        "target": "NT",
+        "distance": 90
+      },
+      {
+        "source": "NT",
+        "target": "TC",
+        "distance": 130
+      },
+      {
+        "source": "JJ",
+        "target": "NC",
+        "distance": 135
+      },
+      {
+        "source": "JJ",
+        "target": "AQ",
+        "distance": 176
+      },
+      {
+        "source": "AQ",
+        "target": "WH_wuhu",
+        "distance": 172
+      },
+      {
+        "source": "ES",
+        "target": "FL",
+        "distance": 229
+      }
+    ],
+    "edgeFlows": [
+      {
+        "edge": "HF->LA",
+        "flow": 535.0,
+        "util": 78.7
+      },
+      {
+        "edge": "LA->MC",
+        "flow": 535.0,
+        "util": 78.7
+      },
+      {
+        "edge": "MC->WH",
+        "flow": 535.0,
+        "util": 78.7
+      },
+      {
+        "edge": "WH->MC",
+        "flow": 535.0,
+        "util": 78.7
+      },
+      {
+        "edge": "MC->LA",
+        "flow": 535.0,
+        "util": 78.7
+      },
+      {
+        "edge": "LA->HF",
+        "flow": 535.0,
+        "util": 78.7
+      },
+      {
+        "edge": "CZ->NJ",
+        "flow": 504.0,
+        "util": 74.1
+      },
+      {
+        "edge": "NJ->CZ",
+        "flow": 504.0,
+        "util": 74.1
+      },
+      {
+        "edge": "HF->CZ",
+        "flow": 435.4,
+        "util": 64.0
+      },
+      {
+        "edge": "CZ->HF",
+        "flow": 435.4,
+        "util": 64.0
+      },
+      {
+        "edge": "NJ->YZ",
+        "flow": 334.4,
+        "util": 49.2
+      },
+      {
+        "edge": "YZ->TZ",
+        "flow": 334.4,
+        "util": 49.2
+      },
+      {
+        "edge": "TZ->NT",
+        "flow": 334.4,
+        "util": 49.2
+      },
+      {
+        "edge": "NT->TZ",
+        "flow": 334.4,
+        "util": 49.2
+      },
+      {
+        "edge": "TZ->YZ",
+        "flow": 334.4,
+        "util": 49.2
+      },
+      {
+        "edge": "YZ->NJ",
+        "flow": 334.4,
+        "util": 49.2
+      },
+      {
+        "edge": "SH->TC",
+        "flow": 325.2,
+        "util": 47.8
+      },
+      {
+        "edge": "TC->NT",
+        "flow": 325.2,
+        "util": 47.8
+      },
+      {
+        "edge": "NT->TC",
+        "flow": 325.2,
+        "util": 47.8
+      },
+      {
+        "edge": "TC->SH",
+        "flow": 325.2,
+        "util": 47.8
+      }
+    ],
+    "odDist": [
+      {
+        "label": "0-300",
+        "count": 8,
+        "demand": 77.4
+      },
+      {
+        "label": "300-500",
+        "count": 30,
+        "demand": 315.5
+      },
+      {
+        "label": "500-800",
+        "count": 42,
+        "demand": 383.2
+      },
+      {
+        "label": "800-1000",
+        "count": 34,
+        "demand": 358.2
+      },
+      {
+        "label": "1000-1500",
+        "count": 44,
+        "demand": 436.5
+      },
+      {
+        "label": "1500-2000",
+        "count": 30,
+        "demand": 204.9
+      },
+      {
+        "label": "2000+",
+        "count": 2,
+        "demand": 132.6
+      }
+    ]
+  },
+  "p2": {
+    "totalDemand": 1908.4,
+    "satisfied": 1908.4,
+    "satPct": 100.0,
+    "totalCost": 6453039.37,
+    "emuTons": 1212.6,
+    "pigTons": 695.8,
+    "emuPct": 63.5,
+    "pigPct": 36.5,
+    "avgCostPerTon": 3381.46,
+    "avgRevenuePerTon": 3801.07,
+    "marginPerTon": 419.61
+  },
+  "p3": {
+    "locations": [
+      {
+        "code": "WH",
+        "name": "武汉",
+        "built": true
+      },
+      {
+        "code": "CS",
+        "name": "长沙",
+        "built": true
+      },
+      {
+        "code": "NC",
+        "name": "南昌",
+        "built": true
+      },
+      {
+        "code": "ZZ",
+        "name": "郑州",
+        "built": true
+      },
+      {
+        "code": "CQ",
+        "name": "重庆",
+        "built": true
+      },
+      {
+        "code": "GY",
+        "name": "贵阳",
+        "built": true
+      },
+      {
+        "code": "CD",
+        "name": "成都",
+        "built": true
+      },
+      {
+        "code": "SH",
+        "name": "上海",
+        "built": false
+      },
+      {
+        "code": "HZ",
+        "name": "杭州",
+        "built": false
+      },
+      {
+        "code": "NJ",
+        "name": "南京",
+        "built": false
+      },
+      {
+        "code": "HF",
+        "name": "合肥",
+        "built": false
+      },
+      {
+        "code": "XZ",
+        "name": "徐州",
+        "built": false
+      }
+    ],
+    "baseLoad": [
+      {
+        "code": "WH",
+        "name": "武汉",
+        "load": 35.5,
+        "capacity": 85,
+        "util": 100.0
+      },
+      {
+        "code": "CS",
+        "name": "长沙",
+        "load": 109.0,
+        "capacity": 85,
+        "util": 100.0
+      },
+      {
+        "code": "NC",
+        "name": "南昌",
+        "load": 13.0,
+        "capacity": 85,
+        "util": 100.0
+      },
+      {
+        "code": "ZZ",
+        "name": "郑州",
+        "load": 24.8,
+        "capacity": 85,
+        "util": 100.0
+      },
+      {
+        "code": "CQ",
+        "name": "重庆",
+        "load": 38.1,
+        "capacity": 85,
+        "util": 100.0
+      },
+      {
+        "code": "GY",
+        "name": "贵阳",
+        "load": 100.6,
+        "capacity": 85,
+        "util": 100.0
+      },
+      {
+        "code": "CD",
+        "name": "成都",
+        "load": 42.0,
+        "capacity": 85,
+        "util": 100.0
+      }
+    ],
+    "economics": {
+      "revenue": 2808289,
+      "cost": 649349,
+      "profit": 2158940,
+      "margin": 76.9,
+      "investment": 5.376,
+      "emuTons": 95.8,
+      "pigTons": 689.8,
+      "emuPct": 12.2,
+      "pigPct": 87.8,
+      "satTons": 785.6,
+      "satPct": 41.2
+    }
+  },
+  "p4": {
+    "emuRoutes": [
+      {
+        "path": [
+          "长沙",
+          "贵阳",
+          "成都",
+          "重庆",
+          "郑州"
+        ],
+        "dist": 2715,
+        "trains": 1,
+        "flow": 6.5
+      },
+      {
+        "path": [
+          "长沙",
+          "贵阳",
+          "成都"
+        ],
+        "dist": 1354,
+        "trains": 1,
+        "flow": 7.7
+      },
+      {
+        "path": [
+          "长沙",
+          "贵阳",
+          "重庆",
+          "郑州"
+        ],
+        "dist": 2120,
+        "trains": 1,
+        "flow": 2.8
+      },
+      {
+        "path": [
+          "武汉",
+          "长沙"
+        ],
+        "dist": 362,
+        "trains": 1,
+        "flow": 12.3
+      }
+    ],
+    "emuTotalTrains": 17,
+    "emuTotalFlow": 125.3,
+    "pigRoutes": [
+      {
+        "from": "长沙",
+        "to": "上海",
+        "flow": 19.7,
+        "trains": 3
+      },
+      {
+        "from": "合肥",
+        "to": "贵阳",
+        "flow": 17.6,
+        "trains": 3
+      },
+      {
+        "from": "贵阳",
+        "to": "合肥",
+        "flow": 17.6,
+        "trains": 3
+      },
+      {
+        "from": "杭州",
+        "to": "成都",
+        "flow": 17.3,
+        "trains": 3
+      },
+      {
+        "from": "成都",
+        "to": "杭州",
+        "flow": 17.3,
+        "trains": 3
+      },
+      {
+        "from": "上海",
+        "to": "重庆",
+        "flow": 16.0,
+        "trains": 3
+      },
+      {
+        "from": "成都",
+        "to": "上海",
+        "flow": 15.3,
+        "trains": 2
+      },
+      {
+        "from": "南通",
+        "to": "武汉",
+        "flow": 14.8,
+        "trains": 2
+      },
+      {
+        "from": "武汉",
+        "to": "南通",
+        "flow": 14.8,
+        "trains": 2
+      },
+      {
+        "from": "上海",
+        "to": "成都",
+        "flow": 13.0,
+        "trains": 2
+      }
+    ],
+    "pigTotalTrains": 151,
+    "pigTotalFlow": 689.8
+  },
+  "p5": {
+    "investment": 5.376,
+    "nBases": 7,
+    "annualProfit": 7.96150850794228,
+    "paybackMonths": 8.102987007505401,
+    "npv": 93.84199366989834,
+    "irr": 148.09353433634692,
+    "roi": 148.0935362340454,
+    "bepTons": 25.993377203909247,
+    "dailyRevenue": 2820135.7800000007,
+    "dailyCost": 638900.5723445816,
+    "dailyProfit": 2181235.207655419,
+    "cashFlows": [
+      {
+        "year": 1,
+        "cashFlow": 7.96,
+        "cumulative": 2.59,
+        "discounted": 7.58
+      },
+      {
+        "year": 2,
+        "cashFlow": 7.96,
+        "cumulative": 10.55,
+        "discounted": 7.22
+      },
+      {
+        "year": 3,
+        "cashFlow": 7.96,
+        "cumulative": 18.51,
+        "discounted": 6.88
+      },
+      {
+        "year": 4,
+        "cashFlow": 7.96,
+        "cumulative": 26.47,
+        "discounted": 6.55
+      },
+      {
+        "year": 5,
+        "cashFlow": 7.96,
+        "cumulative": 34.43,
+        "discounted": 6.24
+      },
+      {
+        "year": 6,
+        "cashFlow": 7.96,
+        "cumulative": 42.39,
+        "discounted": 5.94
+      },
+      {
+        "year": 7,
+        "cashFlow": 7.96,
+        "cumulative": 50.35,
+        "discounted": 5.66
+      },
+      {
+        "year": 8,
+        "cashFlow": 7.96,
+        "cumulative": 58.32,
+        "discounted": 5.39
+      },
+      {
+        "year": 9,
+        "cashFlow": 7.96,
+        "cumulative": 66.28,
+        "discounted": 5.13
+      },
+      {
+        "year": 10,
+        "cashFlow": 7.96,
+        "cumulative": 74.24,
+        "discounted": 4.89
+      },
+      {
+        "year": 11,
+        "cashFlow": 7.96,
+        "cumulative": 82.2,
+        "discounted": 4.65
+      },
+      {
+        "year": 12,
+        "cashFlow": 7.96,
+        "cumulative": 90.16,
+        "discounted": 4.43
+      },
+      {
+        "year": 13,
+        "cashFlow": 7.96,
+        "cumulative": 98.12,
+        "discounted": 4.22
+      },
+      {
+        "year": 14,
+        "cashFlow": 7.96,
+        "cumulative": 106.09,
+        "discounted": 4.02
+      },
+      {
+        "year": 15,
+        "cashFlow": 7.96,
+        "cumulative": 114.05,
+        "discounted": 3.83
+      },
+      {
+        "year": 16,
+        "cashFlow": 7.96,
+        "cumulative": 122.01,
+        "discounted": 3.65
+      },
+      {
+        "year": 17,
+        "cashFlow": 7.96,
+        "cumulative": 129.97,
+        "discounted": 3.47
+      },
+      {
+        "year": 18,
+        "cashFlow": 7.96,
+        "cumulative": 137.93,
+        "discounted": 3.31
+      },
+      {
+        "year": 19,
+        "cashFlow": 7.96,
+        "cumulative": 145.89,
+        "discounted": 3.15
+      },
+      {
+        "year": 20,
+        "cashFlow": 7.96,
+        "cumulative": 153.85,
+        "discounted": 3.0
+      }
+    ],
+    "sensitivity": {
+      "demand": [
+        {
+          "change": -40,
+          "profit": 4.63
+        },
+        {
+          "change": -20,
+          "profit": 6.27
+        },
+        {
+          "change": 0,
+          "profit": 7.91
+        },
+        {
+          "change": 20,
+          "profit": 9.54
+        },
+        {
+          "change": 40,
+          "profit": 11.18
+        }
+      ],
+      "rate": [
+        {
+          "change": -30,
+          "profit": 7.36
+        },
+        {
+          "change": -15,
+          "profit": 7.63
+        },
+        {
+          "change": 0,
+          "profit": 7.91
+        },
+        {
+          "change": 15,
+          "profit": 8.18
+        },
+        {
+          "change": 30,
+          "profit": 8.45
+        }
+      ]
+    }
+  },
+  "p6": {
+    "radarScores": {
+      "高铁快运": [
+        8,
+        6,
+        10,
+        7,
+        9,
+        5
+      ],
+      "航空货运": [
+        10,
+        2,
+        5,
+        3,
+        2,
+        4
+      ],
+      "公路卡车": [
+        2,
+        10,
+        6,
+        8,
+        6,
+        10
+      ]
+    },
+    "radarDims": [
+      "运输时效",
+      "运价竞争力",
+      "准点可靠性",
+      "装载能力",
+      "绿色低碳",
+      "网络覆盖"
+    ],
+    "costDistance": [
+      {
+        "distance": 100,
+        "highSpeedRail": 21.4,
+        "air": 98.0,
+        "truck": 3.4
+      },
+      {
+        "distance": 200,
+        "highSpeedRail": 24.9,
+        "air": 106.0,
+        "truck": 4.5
+      },
+      {
+        "distance": 300,
+        "highSpeedRail": 28.4,
+        "air": 114.0,
+        "truck": 5.6
+      },
+      {
+        "distance": 500,
+        "highSpeedRail": 35.4,
+        "air": 130.0,
+        "truck": 7.6
+      },
+      {
+        "distance": 800,
+        "highSpeedRail": 45.9,
+        "air": 154.0,
+        "truck": 10.8
+      },
+      {
+        "distance": 1000,
+        "highSpeedRail": 52.9,
+        "air": 170.0,
+        "truck": 12.9
+      },
+      {
+        "distance": 1200,
+        "highSpeedRail": 59.9,
+        "air": 186.0,
+        "truck": 15.0
+      },
+      {
+        "distance": 1500,
+        "highSpeedRail": 70.4,
+        "air": 210.0,
+        "truck": 18.2
+      },
+      {
+        "distance": 1800,
+        "highSpeedRail": 80.8,
+        "air": 234.0,
+        "truck": 21.3
+      },
+      {
+        "distance": 2000,
+        "highSpeedRail": 87.8,
+        "air": 250.0,
+        "truck": 23.4
+      }
+    ],
+    "carbonData": [
+      {
+        "distance": 300,
+        "highSpeedRail": 1.2,
+        "air": 36.0,
+        "truck": 6.0
+      },
+      {
+        "distance": 500,
+        "highSpeedRail": 2.0,
+        "air": 60.0,
+        "truck": 10.0
+      },
+      {
+        "distance": 800,
+        "highSpeedRail": 3.2,
+        "air": 96.0,
+        "truck": 16.0
+      },
+      {
+        "distance": 1000,
+        "highSpeedRail": 4.0,
+        "air": 120.0,
+        "truck": 20.0
+      },
+      {
+        "distance": 1500,
+        "highSpeedRail": 6.0,
+        "air": 180.0,
+        "truck": 30.0
+      },
+      {
+        "distance": 2000,
+        "highSpeedRail": 8.0,
+        "air": 240.0,
+        "truck": 40.0
+      }
+    ]
+  }
+}
