@@ -50,7 +50,10 @@ tr:hover { background:#f8f9fa; }
 </head>
 <body>
 <div id="app">
-<div class="app">
+<div v-if="loading" style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:var(--text2)">
+  ⏳ 正在加载数据...
+</div>
+<div v-else class="app">
   <div class="header">
     <h1>🚄 高铁快运基地选址与规模优化 — 可视化决策系统</h1>
     <p>北京交通大学 · 现代交通运输系统智能优化实训 | 6大问题综合看板</p>
@@ -193,7 +196,8 @@ tr:hover { background:#f8f9fa; }
   </div>
 
 </div>
-</div>
+</div> <!-- end v-else -->
+</div> <!-- end #app -->
 
 <script>
 const { createApp, ref, onMounted, nextTick, watch } = Vue;
@@ -201,7 +205,15 @@ const { createApp, ref, onMounted, nextTick, watch } = Vue;
 const app = createApp({
   setup() {
     const tab = ref('overview');
-    const data = ref({p1:{},p2:{},p3:{economics:{},locations:[],baseLoad:[]},p4:{},p5:{sensitivity:{demand:[],rate:[]},cashFlows:[]},p6:{costDistance:[],radarScores:{},radarDims:[]}});
+    const data = ref({
+      p1:{nodes:[],edges:[],edgeFlows:[],odDist:[]},
+      p2:{satPct:0,totalCost:0,marginPerTon:0,emuPct:0,pigPct:0,emuTons:0,pigTons:0},
+      p3:{economics:{profit:0,satPct:0,margin:0,investment:0},locations:[],baseLoad:[]},
+      p4:{emuRoutes:[],pigRoutes:[],emuTotalTrains:0,pigTotalTrains:0,pigTotalFlow:0},
+      p5:{paybackMonths:0,irr:0,npv:0,roi:0,cashFlows:[],sensitivity:{demand:[],rate:[]},dailyRevenue:0,dailyCost:0},
+      p6:{costDistance:[],radarScores:{},radarDims:[],carbonData:[]}
+    });
+    const loading = ref(true);
     const tabs = [
       {id:'overview',label:'📊 总览',icon:''},
       {id:'p1',label:'P1 最短路',icon:'🔍'},
@@ -567,8 +579,10 @@ const app = createApp({
         const resp = await fetch('output/dashboard_data.json');
         data.value = await resp.json();
       } catch(e) {
-        console.error('Failed to load data:', e);
+        console.error('数据加载失败:', e);
       }
+      loading.value = false;
+      await nextTick();
       // Register all chart refs
       document.querySelectorAll('[class*="chart"]').forEach(el => {
         const refName = [...el.classList].find(c=>c.startsWith('chart') && c!=='chart');
