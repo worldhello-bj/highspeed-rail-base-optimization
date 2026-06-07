@@ -1,0 +1,294 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper,fontset=none]{ctexart}
+
+% === 中文字体 ===
+\setCJKmainfont{SimSun}
+\setCJKsansfont{SimSun}
+\setCJKmonofont{SimSun}
+\setCJKfamilyfont{zhsong}{SimSun}
+\setCJKfamilyfont{zhhei}{SimSun}
+\setCJKfamilyfont{zhkai}{SimSun}
+\setCJKfamilyfont{zhfs}{SimSun}
+\setCJKfamilyfont{zhli}{SimSun}
+\setCJKfamilyfont{zhyou}{SimSun}
+
+% === 页面设置 ===
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.8cm,right=2.8cm]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,mathtools}
+\usepackage{booktabs,multirow,array}
+\usepackage{graphicx,float}
+\usepackage{hyperref,enumitem}
+\usepackage{xcolor,caption,subcaption}
+
+% === 自定义命令 ===
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\st}{\text{s.t.}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\emu}{^{\text{emu}}}
+\newcommand{\pig}{^{\text{piggy}}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\begin{document}
+
+% ============================================================
+\title{\heiti\zihao{2} 高铁快运基地选址与规模多维协同优化\\[6pt]
+       \large ——问题二：最小费用最大流分配（EMU + 捎带）专题报告}
+\author{}
+\date{\zihao{4} 2026年6月5日}
+\maketitle
+\thispagestyle{empty}
+
+% ============================================================
+\section{问题描述}
+% ============================================================
+
+问题二在问题一的基础上，引入\emph{线路通过能力约束}和\emph{车站办理能力约束}，同时允许\emph{货运动车组（EMU）}与\emph{捎带模式（确认车）}两种运输方式协同作业，求解在能力受限网络中的\emph{最大可承运货流量}及对应的\emph{最小费用分配方案}。
+
+具体约束条件包括：
+\begin{itemize}[leftmargin=*]
+    \item \textbf{线路通过能力}：每个区段每日最多开行 8 列货运动车组（$8 \times 85 = 680$吨/日）；
+    \item \textbf{车站捎带能力}：每个站点每日最多办理 6 列捎带列车（$6 \times 8 = 48$吨/日/站）；
+    \item \textbf{货运动车组}：在有向边 $(u,v)$ 上运输商品 $k$，能力 85吨/列，固定成本 50000元/列，运行可变成本 116.6元/km，装卸成本 144元/吨；
+    \item \textbf{捎带模式}：从起点直达终点，不占线路通过能力，装载能力 8吨/列，装卸成本 120元/吨。
+\end{itemize}
+
+% ============================================================
+\section{数学模型}
+% ============================================================
+
+\subsection{符号定义}
+
+\begin{itemize}[leftmargin=*]
+    \item $G = (V, A)$：区域高铁路网有向图，$V$为车站集合，$A$为有向弧集合；
+    \item $K$：货运 OD 集合，$k \in K$ 对应起点 $O(k)$ 与终点 $D(k)$，需求上限 $q_k$（吨/日）；
+    \item $C^{\text{edge}} = 680$ 吨/日：单条有向弧 EMU 通过能力；
+    \item $C^{\text{pig}} = 48$ 吨/日：单站捎带办理能力；
+    \item $d_{uv}$：弧 $(u,v)$ 的物理距离（km）。
+\end{itemize}
+
+\subsection{决策变量}
+
+\begin{itemize}[leftmargin=*]
+    \item $x_{uv}^k \geq 0$：商品 $k$ 在弧 $(u,v)$ 上由 EMU 运输的量（吨/日）；
+    \item $y^k \geq 0$：商品 $k$ 通过捎带模式从 $O(k)$ 直达 $D(k)$ 的量（吨/日）；
+    \item $s^k \in [0, q_k]$：商品 $k$ 的实际满足量（吨/日）。
+\end{itemize}
+
+\subsection{约束条件}
+
+\textbf{(a) 流量守恒约束}（$\forall k \in K, \forall i \in V$）：
+
+\begin{equation}
+\sum_{j \in \delta^+(i)} x_{ij}^k - \sum_{j \in \delta^-(i)} x_{ji}^k + 
+\begin{cases}
+y^k & i = O(k) \\
+-y^k & i = D(k) \\
+0 & \text{otherwise}
+\end{cases}
+=
+\begin{cases}
+s^k & i = O(k) \\
+-s^k & i = D(k) \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\textbf{(b) 弧能力约束}（$\forall (u,v) \in A$）：
+
+\begin{equation}
+\sum_{k \in K} x_{uv}^k \leq C^{\text{edge}} = 680 \quad \text{吨/日}
+\end{equation}
+
+\textbf{(c) 车站捎带能力约束}（$\forall i \in V$）：
+
+\begin{equation}
+\sum_{k: O(k) = i} y^k \leq 48 \quad \text{吨/日},\qquad 
+\sum_{k: D(k) = i} y^k \leq 48 \quad \text{吨/日}
+\end{equation}
+
+\textbf{(d) 变量非负与上界}：
+
+\begin{equation}
+x_{uv}^k \geq 0,\quad y^k \geq 0,\quad 0 \leq s^k \leq q_k
+\end{equation}
+
+\subsection{目标函数}
+
+采用\emph{二阶段优先级}：首要目标为最大化全网总承运量，次要目标为最小化运营变动成本。通过大$M$法合并为单目标：
+
+\begin{equation}
+\max \quad M \cdot \sum_{k \in K} s^k - \left( C_{\text{emu}}^{\text{run}} + C_{\text{emu}}^{\text{load}} + C_{\text{pig}} \right)
+\end{equation}
+
+其中各成本分量定义为：
+
+\begin{align}
+C_{\text{emu}}^{\text{run}} &= \sum_{(u,v) \in A} \frac{C_{\text{fixed}} + C_{\text{var}} \cdot d_{uv}}{85} \cdot \sum_{k \in K} x_{uv}^k \\[4pt]
+C_{\text{emu}}^{\text{load}} &= 144 \cdot \sum_{k \in K} 2 \cdot (s^k - y^k) \\[4pt]
+C_{\text{pig}} &= 120 \cdot \sum_{k \in K} 2 \cdot y^k
+\end{align}
+
+$M$取充分大的正数（如 $2 \times \max\_possible\_cost$），确保满足量优先于成本优化。
+
+% ============================================================
+\section{求解结果}
+% ============================================================
+
+\subsection{总体指标}
+
+基于 Gurobi 线性规划求解器（MIPGap = 0.1\%），模型获得\emph{全局最优解}：
+
+\begin{table}[H]
+\centering
+\caption{问题二求解总体指标}
+\begin{tabular}{lr}
+\toprule
+\textbf{指标} & \textbf{数值} \\
+\midrule
+求解状态 & 最优解（OPTIMAL） \\
+总需求量 & 1,908.4 吨/日 \\
+\rowcolor{blue!10} \textbf{最大满足量} & \textbf{1,908.4 吨/日} \\
+\rowcolor{blue!10} \textbf{满足率} & \textbf{100.0\%} \\
+未满足量 & 0.0 吨/日 \\
+\midrule
+总费用 & 6,453,039.37 元/日 \\
+\quad EMU 运行费 & 5,936,829.13 元/日 \\
+\quad EMU 装卸费 & 349,223.04 元/日 \\
+\quad 捎带装卸费 & 166,987.20 元/日 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{运输模式分担}
+
+在能力受限网络下，两种模式的最优分担比例如下：
+
+\begin{table}[H]
+\centering
+\caption{运输模式分担比例}
+\begin{tabular}{lrr}
+\toprule
+\textbf{运输模式} & \textbf{承运量(吨/日)} & \textbf{占比} \\
+\midrule
+货运动车组 (EMU) & 1,212.6 & 63.5\% \\
+捎带模式 (确认车) & 695.8 & 36.5\% \\
+\midrule
+\textbf{合计} & \textbf{1,908.4} & \textbf{100.0\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+捎带模式承担了超过三分之一的货流量，充分发挥了其"不占线路通过能力"的天然优势，有效缓解了合肥—武汉、南京—合肥等核心走廊的 EMU 压力。
+
+\subsection{经济性分析}
+
+\begin{table}[H]
+\centering
+\caption{单位经济指标}
+\begin{tabular}{lr}
+\toprule
+\textbf{指标} & \textbf{数值} \\
+\midrule
+平均吨成本 & 3,381.46 元/吨 \\
+平均吨收入 & 3,801.07 元/吨 \\
+\rowcolor{green!10} \textbf{吨均毛利} & \textbf{419.61 元/吨} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+吨均毛利约 420 元/吨，体现了高铁快运在当前需求结构下的\emph{正向盈利能力}。但平均运距近 1,000 km，单吨收入约 3,800 元，说明运价水平对远距离高附加值货物具有较好的成本覆盖。
+
+\subsection{区段利用率分析}
+
+引入能力约束后，流量分布发生显著变化——货流不再机械地沿最短路径分配，而是由优化模型在满足能力约束的前提下自动选择成本最低的可行路由。区段利用率 TOP-10 如下：
+
+\begin{table}[H]
+\centering
+\caption{区段利用率 TOP-10}
+\begin{tabular}{cccc}
+\toprule
+\textbf{排名} & \textbf{区段} & \textbf{EMU流量(吨/日)} & \textbf{饱和度} \\
+\midrule
+1 & 杭州 $\leftrightarrow$ HZ\_huzhou & 318.8 & 46.9\% \\
+2 & HZ\_huzhou $\leftrightarrow$ 南京 & 318.8 & 46.9\% \\
+3 & JJ $\leftrightarrow$ AQ & 268.6 & 39.5\% \\
+4 & 南京 $\leftrightarrow$ WH\_wuhu & 267.0 & 39.3\% \\
+5 & AQ $\leftrightarrow$ WH\_wuhu & 267.0 & 39.3\% \\
+6 & 武汉 $\leftrightarrow$ JJ & 268.6 & 39.5\% \\
+7 & AQ $\leftrightarrow$ 合肥 & 245.2 & 36.1\% \\
+8 & WH\_wuhu $\leftrightarrow$ NJ & 267.0 & 39.3\% \\
+9 & 南京 $\leftrightarrow$ YZ & 220.3 & 32.4\% \\
+10 & YZ $\leftrightarrow$ TZ & 220.3 & 32.4\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{关键发现：}
+
+\begin{itemize}
+    \item \textbf{最高饱和度仅 47\%}：引入能力约束和捎带分流后，所有区段的 EMU 饱和度均降至 50\% 以下，远低于问题一中 78.7\% 的最高值；
+    \item \textbf{杭州—南京轴心突显}：杭州方向（经 HZ\_huzhou 至南京）成为 EMU 流最集中的走廊，反映了长三角城市群内部旺盛的快运需求；
+    \item \textbf{九江—安庆—芜湖三角区高负荷}：JJ—AQ—WH\_wuhu—NJ 构成的平行四边形区域成为仅次于沪宁杭的第二大流量聚集带，体现了长江中游城市群的货运活跃度。
+\end{itemize}
+
+% ============================================================
+\section{与问题一的对比分析}
+% ============================================================
+
+\begin{table}[H]
+\centering
+\caption{问题一 vs 问题二 关键指标对比}
+\begin{tabular}{lcc}
+\toprule
+\textbf{指标} & \textbf{问题一（全有全无）} & \textbf{问题二（MCMF）} \\
+\midrule
+分配方式 & 最短路径全量分配 & 最优多模分流 \\
+能力约束 & 无 & 弧 + 站点 \\
+运输模式 & 仅 EMU & EMU + 捎带 \\
+需求满足率 & 100\%（假设） & 100\%（最优） \\
+区段最高饱和度 & 78.7\% & 46.9\% \\
+EMU占比 & 100\% & 63.5\% \\
+捎带占比 & 0\% & 36.5\% \\
+高负荷走廊 & 合肥—武汉 & 杭州—南京 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+对比分析揭示了两阶段分析的递进逻辑：
+
+\begin{enumerate}[leftmargin=*]
+    \item 问题一作为\emph{基准情景}，揭示了需求对路网的天然压力——合肥—武汉走廊在纯 EMU 模式下接近 80\% 饱和；
+    \item 问题二引入能力约束和多模选择后，优化模型\emph{自动将 36.5\% 的货流从 EMU 转移至捎带}，使全网区段饱和度大幅下降至 50\% 以下；
+    \item 捎带模式的"无线路占用"特性对缓解瓶颈走廊尤为关键：沪宁、合武等压力区段通过捎带分流获得了实质性的负荷释放。
+\end{enumerate}
+
+% ============================================================
+\section{结论与展望}
+% ============================================================
+
+\subsection{主要结论}
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{全网需求可全部满足}：在当前需求水平（1,908.4 吨/日）下，通过 EMU 与捎带的协同优化，可在不超线路能力的条件下实现 100\% 需求满足率；
+    \item \textbf{捎带模式价值显著}：确认车捎带以 36.5\% 的分担比率，成为缓解 EMU 线路压力的\emph{核心减压阀}，且其边际成本极低（仅装卸费 120 元/吨，无运行费）；
+    \item \textbf{经济性正向}：吨均毛利约 420 元/吨，证明当前运价体系和成本结构下高铁快运具有\emph{商业模式可行性}；
+    \item \textbf{瓶颈重心转移}：从问题一的"合肥—武汉轴"转向问题二的"杭州—南京轴"，反映了能力约束对流量分布的重塑效应。
+\end{enumerate}
+
+\subsection{局限与下一步}
+
+\begin{itemize}
+    \item 问题二假设所有站点均可办理 EMU 始发终到作业，未考虑\emph{基地建设约束}——现实中仅有部分站点具备基地条件，这将在问题三中通过 MIP 选址模型解决；
+    \item 捎带模式假设为"点对点直达"，未考虑中转集散效率，进一步的中转网络优化也将在问题三中纳入；
+    \item 当前成本仅包含运营变动成本，未计入基地\emph{建设折旧与固定人工}——问题三将完整考虑全生命周期成本。
+\end{itemize}
+
+\vspace{12pt}
+\noindent\rule{\textwidth}{0.5pt}
+\vspace{6pt}
+
+\begin{center}
+\small\textit{本报告基于 Python (Gurobi LP) 最小费用最大流优化结果自动生成。}
+\end{center}
+
+\end{document}

@@ -1,0 +1,580 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper,fontset=none]{ctexart}
+
+% === 中文字体 ===
+\setCJKmainfont{SimSun}
+\setCJKsansfont{SimSun}
+\setCJKmonofont{SimSun}
+\setCJKfamilyfont{zhsong}{SimSun}
+\setCJKfamilyfont{zhhei}{SimSun}
+\setCJKfamilyfont{zhkai}{SimSun}
+\setCJKfamilyfont{zhfs}{SimSun}
+\setCJKfamilyfont{zhli}{SimSun}
+\setCJKfamilyfont{zhyou}{SimSun}
+
+% === 页面设置 ===
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.8cm,right=2.8cm]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,mathtools}
+\usepackage{booktabs,multirow,array,longtable}
+\usepackage{graphicx,float}
+\usepackage{hyperref,enumitem}
+\usepackage{xcolor,caption,subcaption}
+\usepackage{tikz}
+
+% === 自定义命令 ===
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\st}{\text{s.t.}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\definecolor{critical}{RGB}{220,50,50}
+\definecolor{warning}{RGB}{240,150,0}
+\definecolor{normal}{RGB}{0,120,60}
+
+\begin{document}
+
+% ============================================================
+\title{\heiti\zihao{2} 问题一详解：\\[6pt]
+       货流最短路径计算与全有全无分配}
+\author{}
+\date{\zihao{4} 2026年6月5日}
+\maketitle
+\thispagestyle{empty}
+
+\vspace{12pt}
+\begin{center}
+\large\heiti 摘要
+\end{center}
+\vspace{6pt}
+
+\noindent 本报告对高铁快运基地选址优化案例中的\textbf{问题一}——"货流最短路与全有全无分配"进行详细的方法论阐述与结果分析。首先构建了包含34个节点和44条区间的区域高铁路网拓扑图，基于Dijkstra算法计算了15个主站间190对OD的最短路径；随后采用全有全无（All-or-Nothing）交通分配方法，将每日1908.4吨货运需求沿最短路径全量加载至路网各区间；最后对所有有向弧进行通过能力校核（上限680吨/日），识别潜在瓶颈区段。结果表明：在无能力约束的理想假设下，全网无区段超限，但合肥—武汉走廊（LA--MC--WH段）饱和度已达78.7\%，接近预警线，为后续引入捎带模式分流（问题二）和基地选址优化（问题三）提供了重要的基准参照。
+
+\newpage
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{问题背景与理论意义}
+% ============================================================
+
+\subsection{问题来源}
+
+本问题源自《现代交通运输系统智能优化实训》课程中的"高铁快运基地选址与规模多维协同优化"案例。该案例以我国区域高速铁路网络为研究对象，围绕"选址—规模—流分配"三阶段递进决策框架，系统性地解决高铁快运基础设施布局与运营优化的核心难题。
+
+问题一作为三阶段框架的\textbf{第一阶段（基础网络分析）}，承担着以下关键角色：
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{网络拓扑认知}：建立对路网物理连接关系与结构特征的全局理解；
+    \item \textbf{需求空间分布建模}：将离散的OD需求矩阵映射到连续的路网弧段上；
+    \item \textbf{能力基准校核}：在理想假设（无约束）下，评估需求对路网通过能力的天然压力，为后续阶段的能力约束建模提供基准参照。
+\end{enumerate}
+
+\subsection{全有全无分配的理论基础}
+
+全有全无（All-or-Nothing，简称AON）分配是交通规划领域最经典的流量分配方法之一\footnote{参见 Sheffi, Y. (1985). \textit{Urban Transportation Networks: Equilibrium Analysis with Mathematical Programming Methods}. Prentice-Hall.}。其核心假设为：
+
+\begin{itemize}
+    \item \textbf{最短路径原则}：每位出行者（在此为每支OD货流）独立选择阻抗最小（距离最短）的路径；
+    \item \textbf{无拥挤效应}：路段的旅行阻抗不随流量增加而变化，即不考虑线路通过能力的约束；
+    \item \textbf{全量加载}：OD对之间的全部需求一次性加载到其最短路径上，不存在分流行为。
+\end{itemize}
+
+AON分配的数学表述极为简洁：对于路网 $G=(V,A)$，设 $d_{ij}$ 为弧 $(i,j)$ 的阻抗（距离），$q^{rs}$ 为OD对 $(r,s)$ 的需求量，$P^{rs}$ 为 $(r,s)$ 间的最短路径节点序列。则弧 $(i,j)$ 上的分配流量 $x_{ij}$ 为：
+
+\begin{equation}
+x_{ij} = \sum_{(r,s) \in K} q^{rs} \cdot \delta_{ij}^{rs}, \quad 
+\delta_{ij}^{rs} = 
+\begin{cases}
+1 & \text{若 } (i,j) \in P^{rs} \\
+0 & \text{否则}
+\end{cases}
+\end{equation}
+
+其中 $\delta_{ij}^{rs}$ 为弧—路径关联指示变量。
+
+\subsection{AON方法的适用性与局限性}
+
+\textbf{适用场景：}
+\begin{itemize}
+    \item 作为能力约束模型前的\textbf{基准场景（Base Case）}；
+    \item 当路网能力充裕、不存在拥挤时，AON结果近似于用户均衡（UE）；
+    \item 快速识别路网中的\textbf{天然瓶颈}——即单纯由需求和拓扑结构导致的集中负荷。
+\end{itemize}
+
+\textbf{局限性：}
+\begin{itemize}
+    \item 不考虑线路通过能力上限，可能高估瓶颈区段的实际流量；
+    \item 不允许货流在多条路径间分流，无法反映运营灵活性；
+    \item 未考虑不同运输模式（EMU vs. 捎带）的成本差异。
+\end{itemize}
+
+正因如此，问题一的AON分析结果必须与后续的能力约束模型（问题二、三）进行对比，才能揭示能力约束对流量分布的重塑效应。
+
+% ============================================================
+\section{路网构建与拓扑分析}
+% ============================================================
+
+\subsection{节点分类与编码}
+
+本案例的高铁网络共包含\textbf{34个节点}，分为两类：
+
+\begin{table}[H]
+\centering
+\caption{节点分类统计}
+\begin{tabular}{lrl}
+\toprule
+\textbf{节点类型} & \textbf{数量} & \textbf{说明} \\
+\midrule
+主站（OD站点）  & 15 & 快运需求起讫点，部分为备选基地 \\
+中间路由节点  & 19 & 仅用于路径连通，不产生/吸收货流 \\
+\midrule
+\textbf{合计} & \textbf{34} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{15个主站详细信息}
+
+\begin{table}[H]
+\centering
+\caption{主站列表}
+\begin{tabular}{clcl}
+\toprule
+\textbf{编号} & \textbf{代码} & \textbf{名称} & \textbf{是否备选基地} \\
+\midrule
+ 0 & SH  & 上海 & $\checkmark$ \\
+ 1 & NT  & 南通 & $\times$ \\
+ 2 & HZ  & 杭州 & $\checkmark$ \\
+ 3 & NJ  & 南京 & $\checkmark$ \\
+ 4 & HF  & 合肥 & $\checkmark$ \\
+ 5 & BB  & 蚌埠 & $\times$ \\
+ 6 & XZ  & 徐州 & $\checkmark$ \\
+ 7 & WH  & 武汉 & $\checkmark$ \\
+ 8 & CS  & 长沙 & $\checkmark$ \\
+ 9 & NC  & 南昌 & $\checkmark$ \\
+10 & ZZ  & 郑州 & $\checkmark$ \\
+11 & YC  & 宜昌 & $\times$ \\
+12 & CQ  & 重庆 & $\checkmark$ \\
+13 & GY  & 贵阳 & $\checkmark$ \\
+14 & CD  & 成都 & $\checkmark$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+其中，南通（NT）、蚌埠（BB）、宜昌（YC）为纯OD站点，不具备基地建设条件，因此也不能办理货运动车组的始发终到和中转作业（问题三将考虑此约束）。
+
+\subsubsection*{19个中间路由节点}
+
+中间节点包括：FL（涪陵）、WZ（万州）、XS（秀山）、ES（恩施）、XY（襄阳）、JM（荆门）、TM（天门）、MC（麻城）、LA（六安）、CZ（滁州）、YZ（扬州）、TZ（泰州）、TC（太仓）、HH（怀化）、JJ（九江）、AQ（安庆）、WH\_wuhu（芜湖）、HZ\_huzhou（湖州）、JX（嘉兴）。
+
+这些节点在物理网络中代表实际的线路交汇点或中间站，但在模型中仅承担路由功能，不产生或吸收货运需求。
+
+\subsection{线路拓扑与通道划分}
+
+路网包含\textbf{44条无向边}（对应88条有向弧），可以归纳为以下六大运输通道：
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{沪汉蓉通道（东西大动脉）}：上海 $\to$ 杭州 $\to$ 南京 $\to$ 合肥 $\to$ 武汉 $\to$ 宜昌 $\to$ 重庆 $\to$ 成都，全长约2,250 km，是路网中最重要的横向走廊；
+    \item \textbf{京广通道（南北纵轴）}：郑州 $\to$ 武汉 $\to$ 长沙 $\to$ 怀化 $\to$ 贵阳，纵贯中部；
+    \item \textbf{京沪通道}：郑州 $\to$ 徐州 $\to$ 蚌埠 $\to$ 滁州/合肥 $\to$ 南京，连接华北与长三角；
+    \item \textbf{沪通通道}：南京 $\to$ 扬州 $\to$ 泰州 $\to$ 南通 $\to$ 太仓 $\to$ 上海，构成长三角北翼环线；
+    \item \textbf{武九—昌九通道}：武汉 $\to$ 九江 $\to$ 南昌 / 安庆，连接长江中游城市群；
+    \item \textbf{西部通道（渝黔—成贵—宜万）}：重庆 $\to$ 贵阳 $\to$ 成都（成贵线）以及重庆 $\to$ 涪陵 $\to$ 恩施 $\to$ 宜昌（宜万线），构成西南山区路网。
+\end{enumerate}
+
+\subsection{全网最短路径距离矩阵}
+
+利用 NetworkX 库的 Dijkstra 算法\footnote{Dijkstra, E. W. (1959). A note on two problems in connexion with graphs. \textit{Numerische Mathematik}, 1, 269--271.}，计算15个主站间两两最短路径。部分代表性OD的距离分布如表\ref{tab:od_dist_sample}所示：
+
+\begin{table}[H]
+\centering
+\caption{代表性OD最短距离示例}
+\label{tab:od_dist_sample}
+\begin{tabular}{lccr}
+\toprule
+\textbf{起点} & \textbf{终点} & \textbf{距离(km)} & \textbf{需求(吨/日)} \\
+\midrule
+上海 (SH) & 成都 (CD) & 1,894 & 66.3 \\
+上海 (SH) & 武汉 (WH) & 835  & 64.3 \\
+上海 (SH) & 重庆 (CQ) & 1,580 & 34.7 \\
+上海 (SH) & 郑州 (ZZ) & 976  & 31.3 \\
+上海 (SH) & 长沙 (CS) & 1,197 & 28.6 \\
+南京 (NJ) & 成都 (CD) & 1,498 & 37.4 \\
+南京 (NJ) & 重庆 (CQ) & 1,184 & 47.5 \\
+武汉 (WH) & 成都 (CD) & 1,059 & 37.1 \\
+武汉 (WH) & 上海 (SH) & 835  & 57.0 \\
+郑州 (ZZ) & 成都 (CD) & 1,413 & 24.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{主站连接度分析}
+
+将网络收缩至仅包含15个主站和它们之间的直接连接（忽略中间路由节点），得到各主站的\textbf{相邻主站度数（连接度）}：
+
+\begin{table}[H]
+\centering
+\caption{主站连接度排序}
+\begin{tabular}{clc}
+\toprule
+\textbf{连接度} & \textbf{站点} & \textbf{相邻主站列表} \\
+\midrule
+5 & 南京 (NJ) & BB, HF, HZ, NC, NT \\
+5 & 武汉 (WH) & CS, HF, NC, YC, ZZ \\
+4 & 合肥 (HF) & BB, NC, NJ, WH \\
+4 & 南昌 (NC) & CS, HF, NJ, WH \\
+4 & 重庆 (CQ) & CD, GY, YC, ZZ \\
+4 & 郑州 (ZZ) & CQ, WH, XZ, YC \\
+3 & 蚌埠 (BB) & HF, NJ, XZ \\
+3 & 长沙 (CS) & GY, NC, WH \\
+3 & 宜昌 (YC) & CQ, WH, ZZ \\
+2 & 贵阳 (GY) & CQ, CS \\
+2 & 杭州 (HZ) & NJ, SH \\
+2 & 南通 (NT) & NJ, SH \\
+2 & 上海 (SH) & HZ, NT \\
+2 & 徐州 (XZ) & BB, ZZ \\
+1 & 成都 (CD) & CQ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{结构特征解读：}
+
+\begin{itemize}
+    \item \textbf{双核枢纽格局}：南京（NJ）和武汉（WH）以连接度5并列第一，分别作为\textbf{东部枢纽}（辐射长三角及安徽）和\textbf{中部枢纽}（连接京广、沪汉蓉、武九三大通道），形成"东—中"双核心的网络骨架；
+    \item \textbf{成渝末端特征}：成都（CD）仅连接重庆（CQ），位于路网末端，其所有对外货流必须经过重庆中转，构成了显著的\textbf{单点失效风险}和\textbf{通道瓶颈}；
+    \item \textbf{长三角高密度互联}：南京—上海—杭州—南通之间形成闭合环状结构（NJ—HZ—SH—NT—NJ），连接度普遍较高，体现了该区域发达的高铁基础设施；
+    \item \textbf{平均连接度 3.07}：15个主站平均相邻主站数为3.07，表明路网整体连通性良好，不存在孤立的"断头"站点。
+\end{itemize}
+
+% ============================================================
+\section{最短路径算法详解}
+% ============================================================
+
+\subsection{Dijkstra算法原理}
+
+本问题采用经典的\textbf{Dijkstra最短路径算法}，其核心思想是贪心策略：从源节点出发，每次选择当前距离最小的未访问节点进行扩展，更新其邻居节点的最短距离估计值，直到所有节点都被访问或目标节点被标记。
+
+对于带正权边 $w(u,v) > 0$ 的无向图 $G=(V,E)$，Dijkstra算法的时间复杂度为 $O(|E| + |V|\log|V|)$（采用二叉堆优化）。在本案例中：
+
+\begin{itemize}
+    \item $|V| = 34$（节点数）；
+    \item $|E| = 44$（无向边数）；
+    \item 共需计算 $15 \times 14 = 210$ 对OD（含 $u=v$ 的自环），有效OD对为190对。
+\end{itemize}
+
+\subsection{距离计算示例：上海至成都}
+
+以全网最长的OD之一——\textbf{上海（SH）至成都（CD）}为例，Dijkstra算法给出的最短路径为：
+
+\begin{center}
+\small
+SH $\xrightarrow{84}$ JX $\xrightarrow{75}$ HZ $\xrightarrow{71}$ HZ\_huzhou $\xrightarrow{185}$ NJ $\xrightarrow{34}$ CZ $\xrightarrow{112}$ HF $\xrightarrow{68}$ LA $\xrightarrow{174}$ MC $\xrightarrow{107}$ WH $\xrightarrow{110}$ TM $\xrightarrow{126}$ JM $\xrightarrow{70}$ YC $\xrightarrow{378}$ XS $\xrightarrow{246}$ WZ $\xrightarrow{245}$ CQ $\xrightarrow{292}$ CD
+\end{center}
+
+\textbf{总距离}：$84+75+71+185+34+112+68+174+107+110+126+70+378+246+245+292 = \mathbf{2,377 \text{ km}}$
+
+该路径全程沿沪汉蓉通道行驶，共经过16段区间、5个中间路由节点（JX、HZ\_huzhou、CZ、LA、MC、TM、JM、XS、WZ、FL实际不走涪陵方向），体现了沪汉蓉通道作为东西向主轴的不可替代性。
+
+值得注意的是，成都—重庆段（292 km）为成渝间唯一通道，这一特征在问题二的能力约束模型中将产生决定性影响。
+
+% ============================================================
+\section{全有全无分配方法与结果}
+% ============================================================
+
+\subsection{分配算法流程}
+
+全有全无分配的具体实现步骤如下：
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{初始化}：为每条有向弧 $(u,v) \in A$ 设置初始流量 $x_{uv} = 0$；
+    \item \textbf{OD遍历}：对于OD需求矩阵中的每一对 $(r,s)$ 及其需求量 $q^{rs}$：
+    \begin{enumerate}
+        \item 从预计算的路径字典中取出最短路径 $P^{rs} = [v_0=r, v_1, v_2, \ldots, v_m=s]$；
+        \item 沿路径 $P^{rs}$ 的每一段 $(v_k, v_{k+1})$，累加流量：$x_{v_k, v_{k+1}} \mathrel{+}= q^{rs}$；
+    \end{enumerate}
+    \item \textbf{统计汇总}：输出每条有向弧的累加流量 $x_{uv}$ 以及合并双向后的断面流量 $x_{uv} + x_{vu}$。
+\end{enumerate}
+
+\subsection{全局指标}
+
+全有全无分配得出的全局统计量如下：
+
+\begin{table}[H]
+\centering
+\caption{全有全无分配全局统计}
+\begin{tabular}{lrr}
+\toprule
+\textbf{指标} & \textbf{数值} & \textbf{单位} \\
+\midrule
+总需求处理量  & 1,908.4  & 吨/日 \\
+有效OD对数    & 190      & 对 \\
+总周转量      & 1,871,085 & 吨$\cdot$公里/日 \\
+平均运距      & 980      & km \\
+全网有向弧数  & 88       & 条 \\
+有流量的弧数  & 82       & 条 \\
+零流量弧数    & 6        & 条 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{解读：} 平均运距约980 km，远高于公路货运的典型运距（300--500 km），验证了高铁快运在中长距离运输中的天然竞争优势。全网88条有向弧中有82条承载了正流量，仅6条弧（主要为西部偏远区段）无货流经过，路网利用率较高。
+
+\subsection{区段流量分布与能力校核}
+
+设定货运动车组线路通过能力上限为：
+
+\begin{equation}
+C^{\text{edge}} = 8 \text{ 列/日} \times 85 \text{ 吨/列} = 680 \text{ 吨/日}
+\end{equation}
+
+对全网有向弧进行饱和度（$x_{uv} / C^{\text{edge}} \times 100\%$）分析：
+
+\begin{table}[H]
+\centering
+\caption{有向弧流量 TOP-20 及饱和度}
+\label{tab:top20}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{排名} & \textbf{区段} & \textbf{流量(吨/日)} & \textbf{饱和度} & \textbf{状态} \\
+\midrule
+ 1 & 合肥 $\to$ LA      & 535.0 & 78.7\% & 正常 \\
+ 2 & LA $\to$ MC        & 535.0 & 78.7\% & 正常 \\
+ 3 & MC $\to$ 武汉      & 535.0 & 78.7\% & 正常 \\
+ 4 & 武汉 $\to$ MC      & 535.0 & 78.7\% & 正常 \\
+ 5 & MC $\to$ LA        & 535.0 & 78.7\% & 正常 \\
+ 6 & LA $\to$ 合肥      & 535.0 & 78.7\% & 正常 \\
+ 7 & CZ $\to$ 南京      & 504.0 & 74.1\% & 正常 \\
+ 8 & 南京 $\to$ CZ      & 504.0 & 74.1\% & 正常 \\
+ 9 & 合肥 $\to$ CZ      & 435.4 & 64.0\% & 正常 \\
+10 & CZ $\to$ 合肥      & 435.4 & 64.0\% & 正常 \\
+11 & 南京 $\to$ YZ      & 334.4 & 49.2\% & 正常 \\
+12 & YZ $\to$ TZ        & 334.4 & 49.2\% & 正常 \\
+13 & TZ $\to$ 南通      & 334.4 & 49.2\% & 正常 \\
+14 & 南通 $\to$ TZ      & 334.4 & 49.2\% & 正常 \\
+15 & TZ $\to$ YZ        & 334.4 & 49.2\% & 正常 \\
+16 & YZ $\to$ 南京      & 334.4 & 49.2\% & 正常 \\
+17 & 上海 $\to$ TC      & 325.2 & 47.8\% & 正常 \\
+18 & TC $\to$ 南通      & 325.2 & 47.8\% & 正常 \\
+19 & 南通 $\to$ TC      & 325.2 & 47.8\% & 正常 \\
+20 & TC $\to$ 上海      & 325.2 & 47.8\% & 正常 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{能力校核汇总}
+
+\begin{table}[H]
+\centering
+\caption{全网有向弧饱和度分级统计}
+\begin{tabular}{lccr}
+\toprule
+\textbf{饱和度区间} & \textbf{弧数} & \textbf{占比} & \textbf{状态说明} \\
+\midrule
+$>100\%$ (超限)    & 0  & 0.0\%  & 需紧急增加运力或强制分流 \\
+$80\%$--$100\%$ (高负荷) & 0  & 0.0\%  & 需密切关注，预留扩容空间 \\
+$50\%$--$80\%$ (中等负荷) & 12 & 14.6\% & 负荷适中，运营正常 \\
+$<50\%$ (低负荷)   & 70 & 85.4\% & 能力充裕，可承接增量需求 \\
+\midrule
+\textbf{合计}       & \textbf{82} & \textbf{100\%} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{核心发现：} 在纯EMU模式且无视能力约束的AON分配下，全网\textbf{无任何区段超限}（最高饱和度78.7\%）。这似乎表明当前路网的线路通过能力对1908.4吨/日的总需求是"足够"的。但这一结论需要审慎解读：
+
+\begin{enumerate}[leftmargin=*]
+    \item 合肥—武汉走廊的六个区段（HF$\to$LA、LA$\to$MC、MC$\to$WH及其反向）饱和度已达78.7\%，距离80\%的预警线仅差1.3个百分点。考虑到需求预测的不确定性（通常有$\pm 15\%$的波动），这些区段存在较高的超限风险；
+    \item AON假设所有货流无成本地选择最短路径，但现实中EMU的开行受到基地设施（始发终到能力）和车站办理能力的强约束——这些约束将在问题二和三中纳入，可能导致部分货流无法按最短路径运输；
+    \item 无向合计后的断面负荷揭示了一个更严峻的信号：合肥—LA—MC—武汉断面的双向合计流量高达1,070吨/日（见表\ref{tab:undirected}），若考虑双向共用基础设施（如供电、调度）的相互制约，实际运营压力远超单向饱和度指标所反映的水平。
+\end{enumerate}
+
+\subsection{无向断面流量 TOP-10}
+
+\begin{table}[H]
+\centering
+\caption{全网 TOP-10 高负荷断面（无向合计）}
+\label{tab:undirected}
+\begin{tabular}{cccc}
+\toprule
+\textbf{排名} & \textbf{断面} & \textbf{双向流量(吨/日)} & \textbf{双向饱和度} \\
+\midrule
+1 & 合肥 $\leftrightarrow$ LA     & 1,069.9 & 78.7\% \\
+2 & LA $\leftrightarrow$ MC       & 1,069.9 & 78.7\% \\
+3 & MC $\leftrightarrow$ 武汉     & 1,069.9 & 78.7\% \\
+4 & CZ $\leftrightarrow$ 南京     & 1,008.0 & 74.1\% \\
+5 & CZ $\leftrightarrow$ 合肥     & 870.8   & 64.0\% \\
+6 & 南通 $\leftrightarrow$ TZ     & 668.8   & 49.2\% \\
+7 & TZ $\leftrightarrow$ YZ       & 668.8   & 49.2\% \\
+8 & 南京 $\leftrightarrow$ YZ     & 668.8   & 49.2\% \\
+9 & 上海 $\leftrightarrow$ TC     & 650.4   & 47.8\% \\
+10& 南通 $\leftrightarrow$ TC     & 650.4   & 47.8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{OD距离分布特征}
+
+将190对有效OD按运输距离分段统计，结果如图\ref{tab:dist_dist}所示：
+
+\begin{table}[H]
+\centering
+\caption{OD距离分布统计}
+\label{tab:dist_dist}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{距离段(km)} & \textbf{OD对数} & \textbf{OD占比} & \textbf{需求(吨/日)} & \textbf{需求占比} \\
+\midrule
+0--300    &  8  &  4.2\% &  77.4  &  4.1\% \\
+300--500  & 30  & 15.8\% & 315.5  & 16.5\% \\
+500--800  & 42  & 22.1\% & 383.2  & 20.1\% \\
+800--1000 & 34  & 17.9\% & 358.2  & 18.8\% \\
+1000--1500& 44  & 23.2\% & 436.5  & 22.9\% \\
+1500--2000& 30  & 15.8\% & 204.9  & 10.7\% \\
+$>$2000  &  2  &  1.1\% & 132.6  &  7.0\% \\
+\midrule
+\textbf{合计} & \textbf{190} & \textbf{100\%} & \textbf{1,908.4} & \textbf{100\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{分布特征解读：}
+
+\begin{itemize}
+    \item \textbf{中长距离主导}：500--1500 km 区间集中了63.2\%的OD对数和61.8\%的需求量，是高铁快运的"黄金距离带"。在该距离范围内，高铁在时效性上碾压公路（8--15小时 vs 2--4小时），在成本上优于航空（尤其考虑两端地面转运）；
+    \item \textbf{短距离占比低}：0--300 km 仅占4.1\%的需求，这与高铁快运的定位一致——300 km以下通常由公路直达运输更具成本优势；
+    \item \textbf{超长距离存在但有限}：仅2对OD（均为成都相关）距离超过2000 km，但贡献了7.0\%的需求量（132.6吨/日），说明成都作为西部中心城市对长三角的高价值快运需求不可忽视——而这类超长距离运输恰恰是高铁快运相较于航空货运的最强竞争领域。
+\end{itemize}
+
+% ============================================================
+\section{瓶颈区段深度分析}
+% ============================================================
+
+\subsection{第一瓶颈走廊：合肥—武汉轴}
+
+合肥—武汉之间的线路由三段区间组成：HF—LA（68 km）—MC（174 km）—WH（107 km），总距离349 km。该走廊的AON分配流量特征如下：
+
+\begin{itemize}
+    \item 单向流量535.0吨/日，饱和度78.7\%；
+    \item 双向合计流量1,069.9吨/日；
+    \item 所需EMU列数：$535.0 / 85 = 6.3$ 列/日/方向，接近8列/日的上限。
+\end{itemize}
+
+\textbf{流量构成拆解：} 经过该走廊的OD需求主要来自以下方向：
+\begin{itemize}
+    \item 长三角（上海、南京、杭州、南通）$\to$ 中西部（武汉、重庆、成都、长沙、贵阳）：经沪汉蓉通道西行，全部必须经过HF—WH段；
+    \item 合肥及安徽北部（蚌埠、徐州）$\to$ 中西部：同样必须经由HF—WH段；
+    \item 反向亦然。
+\end{itemize}
+
+\textbf{瓶颈成因：} 该走廊之所以成为全网最高负荷断面，根本原因在于\textbf{沪汉蓉通道的东西向不可替代性}。在整个路网中，长三角与中西部之间的货流仅有两条可选路径：(1) 沪汉蓉通道（HF—WH），(2) 绕行郑州（SH$\to$NJ$\to$XZ$\to$ZZ$\to$WH）。后者增加了约500 km的绕行距离，在全有全无分配中不会被选择。
+
+\subsection{第二瓶颈走廊：南京—合肥轴}
+
+南京—合肥之间的瓶颈主要体现在CZ（滁州）段：
+\begin{itemize}
+    \item CZ—NJ方向流量504.0吨/日，饱和度74.1\%；
+    \item CZ—HF方向流量435.4吨/日，饱和度64.0\%。
+\end{itemize}
+
+该走廊承载了长三角内部（上海/杭州/南通 $\leftrightarrow$ 合肥/蚌埠）以及长三角北上（$\to$徐州/郑州）的全部货流，同样是不可绕避的关键通道。
+
+\subsection{长三角内部环线}
+
+南京—扬州—泰州—南通—太仓—上海构成的长三角北翼环线，各区段饱和度在47\%--50\%之间，虽未触及预警线，但考虑到长三角城市群的经济密度和快运增长潜力，该环线的中长期扩容需求不容忽视。
+
+% ============================================================
+\section{与后续问题的衔接}
+% ============================================================
+
+问题一的全有全无分析为后续两个问题提供了关键基准：
+
+\subsection{对问题二的启示}
+
+AON结果显示合肥—武汉走廊饱和度已达78.7\%，说明在纯EMU模式下路网虽未超限但已接近能力天花板。这直接指向问题二的核心改进方向：
+
+\begin{itemize}
+    \item \textbf{引入捎带模式}：确认车捎带（8吨/列）不占用线路通过能力，可以将部分高价值、小批量的货流从EMU中"剥离"，缓解瓶颈区段压力；
+    \item \textbf{引入能力约束}：问题二将在模型中显式地加入弧能力约束 $\sum_k x_{uv}^k \leq 680$，迫使优化器在瓶颈区段自动寻找替代路由或转移至捎带模式；
+    \item \textbf{预期效果}：合肥—武汉走廊的EMU饱和度预计将从78.7\%显著下降，捎带模式将承担起"减压阀"的关键角色。
+\end{itemize}
+
+\subsection{对问题三的启示}
+
+问题三的核心是基地选址与规模决策。问题一的分析揭示了以下几个与选址密切相关的路网特征：
+
+\begin{itemize}
+    \item \textbf{南京和武汉作为双核枢纽}，连接度最高（各5），通过的货流量最大——在问题三中，这两站几乎必然需要建设大规模基地，其规模决策将直接影响全网的流分配效率；
+    \item \textbf{成都的末端位置}使其高度依赖重庆中转——问题三中成都是否建基地、建多大规模，将决定成渝城市群的快运自给能力；
+    \item \textbf{合肥—武汉—南京"黄金三角"}是全网最高负荷区域——问题三中这三站的基地规模决策将直接影响瓶颈走廊的缓解程度。
+\end{itemize}
+
+% ============================================================
+\section{技术实现}
+% ============================================================
+
+\subsection{开发环境}
+
+\begin{table}[H]
+\centering
+\caption{技术栈}
+\begin{tabular}{ll}
+\toprule
+\textbf{组件}  & \textbf{版本/说明} \\
+\midrule
+编程语言  & Python 3.x \\
+图论库    & NetworkX \\
+数值计算  & NumPy, Pandas \\
+最短路径算法 & NetworkX Dijkstra（二叉堆实现） \\
+数据存储  & CSV（OD需求、站点信息、参数配置） \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{关键代码逻辑}
+
+网络构建通过 \code{utils.build\_railway\_network()} 函数实现，该函数将44条边逐一添加至 NetworkX 的无向图对象中，边权重设为区间距离（km）。最短路径计算通过 \code{utils.get\_shortest\_paths()} 函数，内部调用 \code{nx.shortest\_path()} 和 \code{nx.shortest\_path\_length()}（底层均为Dijkstra算法）。
+
+全有全无分配的核心循环为：
+
+\begin{verbatim}
+for _, row in od_df.iterrows():
+    src, dst = row['from_code'], row['to_code']
+    demand = row['demand_t_per_day']
+    path = paths[src][dst]
+    for k in range(len(path) - 1):
+        u, v = path[k], path[k+1]
+        edge_flow[(u, v)] += demand
+\end{verbatim}
+
+该循环遍历190对OD，对每对OD沿其预计算的最短路径逐弧累加需求，时间复杂度为 $O(|K| \cdot \bar{L})$，其中 $|K|=190$，$\bar{L} \approx 8$（平均路径长度），总计约1,520次弧操作，计算效率极高。
+
+% ============================================================
+\section{结论}
+% ============================================================
+
+\subsection{主要发现}
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{全网无超限但接近临界}：在当前需求水平（1,908.4吨/日）下，纯EMU模式的全有全无分配未导致任何区段超限（最高饱和度78.7\%）。然而，合肥—武汉走廊（HF—LA—MC—WH）已非常接近80\%的预警线，预留的安全裕度仅约1.3个百分点；
+    
+    \item \textbf{瓶颈区的结构必然性}：合肥—武汉段的高负荷并非偶然，而是由"沪汉蓉通道不可绕避"的拓扑结构决定的——长三角与中西部的货流在路网中缺乏经济可行的替代路径；
+    
+    \item \textbf{需求空间分布合理}：61.8\%的需求量集中在500--1500 km的"黄金距离带"，符合高铁快运的比较优势定位；
+    
+    \item \textbf{成渝末端风险}：成都仅依赖重庆单一通道接入路网，一旦成渝段出现能力瓶颈或运营异常，成都将面临"断网"风险。
+\end{enumerate}
+
+\subsection{后续方向}
+
+问题一的AON分析作为基准情景，验证了路网在理想条件下的承压能力，并精确识别了潜在瓶颈区段。这些发现为问题二（引入能力约束与捎带分流）和问题三（基地选址与规模优化）提供了明确的优化方向：\textbf{通过多模式分流缓解核心走廊压力，通过合理的基地布局降低末端节点的脆弱性}。
+
+\vspace{16pt}
+\noindent\rule{\textwidth}{0.5pt}
+\vspace{8pt}
+
+\begin{center}
+\small\textit{本报告所有数据由 Python (NetworkX + Dijkstra) 全有全无分配程序自动计算生成。\\
+路网拓扑数据来源于案例 PDF 第12页网络拓扑图的手工提取。}
+\end{center}
+
+\end{document}

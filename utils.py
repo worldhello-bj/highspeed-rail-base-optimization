@@ -70,7 +70,7 @@ def build_railway_network():
         ('WH', 'TM', 110),
         ('TM', 'JM', 126),
         ('JM', 'YC', 70),
-        ('YC', 'XS', 234),
+        ('YC', 'XS', 378),
         ('XS', 'WZ', 246),
         ('WZ', 'CQ', 245),
         ('CQ', 'CD', 292),

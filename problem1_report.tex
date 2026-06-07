@@ -1,0 +1,246 @@
+% !TEX program = xelatex
+\documentclass[12pt,a4paper,fontset=none]{ctexart}
+
+% === 中文字体 ===
+\setCJKmainfont{SimSun}
+\setCJKsansfont{SimSun}
+\setCJKmonofont{SimSun}
+\setCJKfamilyfont{zhsong}{SimSun}
+\setCJKfamilyfont{zhhei}{SimSun}
+\setCJKfamilyfont{zhkai}{SimSun}
+\setCJKfamilyfont{zhfs}{SimSun}
+\setCJKfamilyfont{zhli}{SimSun}
+\setCJKfamilyfont{zhyou}{SimSun}
+
+% === 页面设置 ===
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.8cm,right=2.8cm]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,mathtools}
+\usepackage{booktabs,multirow,array}
+\usepackage{graphicx,float}
+\usepackage{hyperref,enumitem}
+\usepackage{xcolor,caption,subcaption}
+
+% === 自定义命令 ===
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\st}{\text{s.t.}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\begin{document}
+
+% ============================================================
+\title{\heiti\zihao{2} 高铁快运基地选址与规模多维协同优化\\[6pt]
+       \large ——问题一：货流最短路与全有全无分配专题报告}
+\author{}
+\date{\zihao{4} 2026年6月5日}
+\maketitle
+\thispagestyle{empty}
+
+% ============================================================
+\section{问题描述}
+% ============================================================
+
+问题一要求基于给定的区域高速铁路网络拓扑，在\emph{全部使用货运动车组模式运输}的前提下，完成以下三项核心任务：
+
+\begin{enumerate}[leftmargin=*]
+    \item 计算每支OD（起讫点）在铁路网络中的\emph{最短路径}及对应的运输距离；
+    \item 采用\emph{全有全无（All-or-Nothing）分配法}，将各OD的货运需求全部沿其最短路径分配至路网各区段；
+    \item 统计各区段的有向货流量，并与线路通过能力（8列/日 $\times$ 85吨/列 = 680吨/日）进行对比，\emph{识别潜在瓶颈区段}并给出扩容建议。
+\end{enumerate}
+
+该问题的意义在于：在理想假设（无能力约束）下，揭示需求分布对路网结构的天然压力特征，为后续引入能力约束和多模式分流（问题二、问题三）提供基准参照。
+
+% ============================================================
+\section{路网结构分析}
+% ============================================================
+
+\subsection{网络规模}
+
+基于PDF拓扑图构建的完整高铁网络具有以下规模特征：
+
+\begin{table}[H]
+\centering
+\caption{路网基本规模}
+\begin{tabular}{lr}
+\toprule
+\textbf{指标} & \textbf{数值} \\
+\midrule
+总节点数 & 34 \\
+\quad 其中：主站（OD站点）& 15 \\
+\quad 其中：中间路由节点 & 19 \\
+总边数（无向区间）& 44 \\
+有向弧数 & 88 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{主站连通性}
+
+15个主站通过中间路由节点相互连接，各主站的连接度（相邻主站数量）如下：
+
+\begin{table}[H]
+\centering
+\caption{各主站连接度}
+\begin{tabular}{lcl}
+\toprule
+\textbf{站点} & \textbf{连接度} & \textbf{相邻主站} \\
+\midrule
+南京 (NJ) & 5 & BB, HF, HZ, NC, NT \\
+武汉 (WH) & 5 & CS, HF, NC, YC, ZZ \\
+合肥 (HF) & 4 & BB, NC, NJ, WH \\
+南昌 (NC) & 4 & CS, HF, NJ, WH \\
+重庆 (CQ) & 4 & CD, GY, YC, ZZ \\
+郑州 (ZZ) & 4 & CQ, WH, XZ, YC \\
+蚌埠 (BB) & 3 & HF, NJ, XZ \\
+长沙 (CS) & 3 & GY, NC, WH \\
+宜昌 (YC) & 3 & CQ, WH, ZZ \\
+贵阳 (GY) & 2 & CQ, CS \\
+杭州 (HZ) & 2 & NJ, SH \\
+南通 (NT) & 2 & NJ, SH \\
+上海 (SH) & 2 & HZ, NT \\
+徐州 (XZ) & 2 & BB, ZZ \\
+成都 (CD) & 1 & CQ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+南京和武汉为连接度最高的枢纽站点（各连接5个主站），而成都位于路网末端仅连接重庆，体现了典型的\emph{东密西疏}路网格局。
+
+% ============================================================
+\section{全有全无分配结果}
+% ============================================================
+
+\subsection{总体指标}
+
+在假定全部OD需求均沿最短路径运输的无约束条件下，全有全无分配得出以下全局统计量：
+
+\begin{table}[H]
+\centering
+\caption{全有全无分配全局指标}
+\begin{tabular}{lr}
+\toprule
+\textbf{指标} & \textbf{数值} \\
+\midrule
+总需求处理量 & 1,908.4 吨/日 \\
+总周转量 & 1,870,887 吨$\cdot$公里/日 \\
+平均运距 & 980 km \\
+有效OD对数 & 190 对 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{区段能力校核}
+
+设定货运动车组通过能力为 680 吨/日（$8$列/日 $\times 85$吨/列），对全网84条有向弧进行饱和度分析，排名前15的高负荷区段如表\ref{tab:edge_util}所示：
+
+\begin{table}[H]
+\centering
+\caption{区段利用率 TOP-15（有向）}
+\label{tab:edge_util}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{排名} & \textbf{区段} & \textbf{方向} & \textbf{流量(吨/日)} & \textbf{饱和度} \\
+\midrule
+1 & 合肥 $\to$ LA & 上行 & 535.0 & 78.7\% \\
+2 & LA $\to$ MC & 上行 & 535.0 & 78.7\% \\
+3 & MC $\to$ 武汉 & 上行 & 535.0 & 78.7\% \\
+4 & 武汉 $\to$ MC & 下行 & 535.0 & 78.7\% \\
+5 & MC $\to$ LA & 下行 & 535.0 & 78.7\% \\
+6 & LA $\to$ 合肥 & 下行 & 535.0 & 78.7\% \\
+7 & CZ $\to$ 南京 & 上行 & 504.0 & 74.1\% \\
+8 & 南京 $\to$ CZ & 下行 & 504.0 & 74.1\% \\
+9 & 合肥 $\to$ CZ & 上行 & 435.4 & 64.0\% \\
+10 & CZ $\to$ 合肥 & 下行 & 435.4 & 64.0\% \\
+11 & 南京 $\to$ YZ & 上行 & 334.4 & 49.2\% \\
+12 & YZ $\to$ TZ & 上行 & 334.4 & 49.2\% \\
+13 & TZ $\to$ 南通 & 上行 & 334.4 & 49.2\% \\
+14 & 上海 $\to$ TC & 上行 & 325.2 & 47.8\% \\
+15 & TC $\to$ 南通 & 上行 & 325.2 & 47.8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{全网高负荷断面（无向合计）}
+
+将双向流量合并后，排名前10的高负荷断面如表\ref{tab:undirected}所示：
+
+\begin{table}[H]
+\centering
+\caption{TOP-10 高负荷断面（无向合计）}
+\label{tab:undirected}
+\begin{tabular}{ccc}
+\toprule
+\textbf{排名} & \textbf{断面} & \textbf{双向流量(吨/日)} \\
+\midrule
+1 & 合肥 $\leftrightarrow$ LA & 1,069.9 \\
+2 & LA $\leftrightarrow$ MC & 1,069.9 \\
+3 & MC $\leftrightarrow$ 武汉 & 1,069.9 \\
+4 & CZ $\leftrightarrow$ 南京 & 1,008.0 \\
+5 & CZ $\leftrightarrow$ 合肥 & 870.8 \\
+6 & 南通 $\leftrightarrow$ TZ & 668.8 \\
+7 & TZ $\leftrightarrow$ YZ & 668.8 \\
+8 & 南京 $\leftrightarrow$ YZ & 668.8 \\
+9 & 上海 $\leftrightarrow$ TC & 650.4 \\
+10 & 南通 $\leftrightarrow$ TC & 650.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{OD距离分布}
+
+将190对OD按运输距离分段统计，结果如下：
+
+\begin{table}[H]
+\centering
+\caption{OD距离分布统计}
+\begin{tabular}{cccc}
+\toprule
+\textbf{距离段(km)} & \textbf{OD对数} & \textbf{需求占比} & \textbf{需求(吨/日)} \\
+\midrule
+0--300   &  8  &  4.1\% &  77.4 \\
+300--500 & 30  & 16.5\% & 315.5 \\
+500--800 & 42  & 20.1\% & 383.2 \\
+800--1000& 34  & 18.8\% & 358.2 \\
+1000--1500&44  & 22.9\% & 436.5 \\
+1500--2000&30  & 10.7\% & 204.9 \\
+2000+    &  2  &  7.0\% & 132.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+需求主要集中在 500--1500 km 的中长距离段（合计 61.8\%），其中 1000--1500 km 段占比最高（22.9\%），反映了高铁快运在中长距离运输中的竞争优势。
+
+% ============================================================
+\section{瓶颈分析与结论}
+% ============================================================
+
+\subsection{关键发现}
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{无区段超限}：在全有全无分配下，所有84条有向弧的饱和度均低于80\%，\emph{无区段超过680吨/日的通过能力上限}。这一结论看似乐观，但需注意全有全无分配假设货流可自由选择最短路径，且未考虑车站办理能力约束。
+    
+    \item \textbf{高负荷区段集中}：饱和度最高的区段集中在\emph{合肥—武汉走廊}（LA—MC—WH段，双向各535吨/日，饱和度为78.7\%），以及\emph{南京—合肥走廊}（CZ段，双向最高504吨/日）。这些区段一旦出现需求增长或临时加开，将率先触及能力天花板。
+    
+    \item \textbf{枢纽压力不均}：南京和武汉作为连接度最高的枢纽（各5个相邻主站），承载了较大的中转换装压力，其周边区间（CZ—NJ、WH—MC）均为全网最高负荷断面。
+    
+    \item \textbf{西部门户瓶颈}：成都仅通过重庆单通道接入路网（CD—CQ，292 km），该区段虽当前饱和度不高，但作为成渝城市群的唯一铁路快运走廊，远期具有较大的扩容需求潜力。
+\end{enumerate}
+
+\subsection{启示}
+
+全有全无分析表明，在理想条件下路网通过能力\emph{勉强满足}当前需求，但合肥—武汉、南京—合肥等关键走廊已接近能力极限的80\%。这说明了以下两个方向的重要性：
+
+\begin{itemize}
+    \item \textbf{引入捎带模式分流}（$\to$问题二）：利用不占线路能力的捎带列车分担部分货流，缓解核心走廊压力；
+    \item \textbf{优化路由与中转}（$\to$问题三）：通过合理的基地选址和中转组织，使货流从最短路径"绕行"至负荷较低的替代路径。
+\end{itemize}
+
+\vspace{12pt}
+\noindent\rule{\textwidth}{0.5pt}
+\vspace{6pt}
+
+\begin{center}
+\small\textit{本报告基于 Python (NetworkX + Dijkstra 算法) 全有全无分配结果自动生成。}
+\end{center}
+
+\end{document}

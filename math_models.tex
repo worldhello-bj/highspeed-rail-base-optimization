@@ -1,0 +1,176 @@
+\documentclass[12pt,a4paper,fontset=none]{ctexart}
+\usepackage[top=2cm,bottom=2cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\setCJKmainfont{SimSun}
+\setCJKsansfont{SimSun}
+\setCJKmonofont{SimSun}
+\setCJKfamilyfont{zhsong}{SimSun}
+\setCJKfamilyfont{zhhei}{SimSun}
+\setCJKfamilyfont{zhkai}{SimSun}
+\setCJKfamilyfont{zhfs}{SimSun}
+\setCJKfamilyfont{zhli}{SimSun}
+\setCJKfamilyfont{zhyou}{SimSun}
+
+\begin{document}
+
+\title{高铁快运基地选址与规模优化\\数学规划模型}
+\author{}
+\date{}
+\maketitle
+
+\section*{问题一：最短路与全有全无分配}
+
+设路网 $G=(V,E)$，边权 $d_{uv}$ 为区间距离。对每个 OD 对 $(o,d)$，其最短路径 $P_{od}$ 由 Dijkstra 算法求得：
+\begin{equation}
+P_{od} = \arg\min_{p \in \mathcal{P}_{od}} \sum_{(u,v) \in p} d_{uv}
+\end{equation}
+全有全无分配下，边 $(u,v)$ 的断面流量：
+\begin{equation}
+f_{uv} = \sum_{(o,d): (u,v) \in P_{od}} q_{od}
+\end{equation}
+能力校核：$f_{uv} \leq C_{\text{edge}} = 8 \times 85 = 680$ 吨/日。
+
+\section*{问题二：最小费用最大流（MCMF）}
+
+\begin{align}
+\max\quad & M \cdot \sum_{k \in K} s_k - \sum_{(u,v) \in A} c_{uv}^{\text{emu}} \cdot \sum_{k \in K} x_{uv}^k - \sum_{k \in K} c_k^{\text{piggy}} \cdot y^k \nonumber\\
+\text{s.t.}\quad & \sum_{j \in N(i)} x_{ij}^k - \sum_{j \in N(i)} x_{ji}^k + \big(y^k \cdot \mathbf{1}_{i=O(k)} - y^k \cdot \mathbf{1}_{i=D(k)}\big) = 
+\begin{cases}
+s_k, & i=O(k)\\
+-s_k, & i=D(k)\\
+0,   & \text{其他}
+\end{cases} \nonumber\\
+& \sum_{k \in K} x_{uv}^k \leq 680,\quad \forall (u,v) \in A \nonumber\\
+& \sum_{k: O(k)=i} y^k + \sum_{k: D(k)=i} y^k \leq 48,\quad \forall i \in V \nonumber\\
+& 0 \leq s_k \leq q_k,\; x_{uv}^k \geq 0,\; y^k \geq 0 \nonumber
+\end{align}
+
+其中 $M$ 为充分大正数（优先最大化流量），$c_{uv}^{\text{emu}} = \frac{50000 + 116.6 \cdot d_{uv}}{85}$ 为货动单位成本。
+
+\section*{问题三：基地选址与规模 MIP（核心模型）}
+
+\subsection*{集合}
+\begin{itemize}
+    \item $V$：车站节点集合，$|V|=34$
+    \item $C \subset V$：备选基地站点，$|C|=12$
+    \item $A$：有向弧集合
+    \item $K$：OD 需求集合，$|K|=190$
+    \item $S = \{0,1,2,3\}$：规模层级
+\end{itemize}
+
+\subsection*{决策变量}
+\begin{itemize}
+    \item $z_{is} \in \{0,1\}$：站点 $i$ 建规模 $s$ 基地
+    \item $w_i = \sum_s z_{is} \in \{0,1\}$：站点 $i$ 是否开放基地
+    \item $s_k \geq 0$：OD $k$ 被满足量
+    \item $x_{uv}^k \geq 0$：货动流
+    \item $y_{ij}^k \geq 0$：捎带流
+    \item $\ell x_i^k, ux_i^k, \ell y_i^k, uy_i^k \geq 0$：装卸量
+    \item $t_i^k \geq 0$：中转量
+\end{itemize}
+
+\subsection*{目标函数}
+\begin{align}
+\max\; Z &= \underbrace{\sum_{k} \big(p^{\text{emu}} d_k ux_{D(k)}^k + p^{\text{piggy}} d_k uy_{D(k)}^k\big)}_{\text{收入}} \nonumber\\
+&\quad - \underbrace{\sum_{i \in C} \sum_s \big(\frac{C_s^{\text{build}}}{7300} + \frac{C_s^{\text{labor}}}{365}\big) z_{is}}_{\text{固定成本（日均）}} \nonumber\\
+&\quad - \underbrace{\sum_{i,k} \frac{22000}{85}(\ell x_i^k + ux_i^k)}_{\text{基地操作}} - \underbrace{\sum_{(u,v),k} \frac{50000+116.6d_{uv}}{85} x_{uv}^k}_{\text{列车运行}} \nonumber\\
+&\quad - \underbrace{\sum_{i,k} \big(144\ell x_i^k + 120\ell y_i^k + 2.52 t_i^k\big)}_{\text{装卸+中转}} \label{eq:obj}
+\end{align}
+
+\subsection*{约束条件}
+
+\textbf{(C1) 流量守恒：}
+\begin{align}
+\sum_{j \in N(i)} x_{ij}^k - \sum_{j \in N(i)} x_{ji}^k &= \ell x_i^k - ux_i^k, \quad \forall i,k \label{eq:c1a}\\
+(\ell x_i^k + \ell y_i^k) - (ux_i^k + uy_i^k) &= 
+\begin{cases}
+s_k,   & i=O(k)\\
+-s_k,  & i=D(k)\\
+0,     & \text{其他}
+\end{cases}, \quad \forall i,k \label{eq:c1b}
+\end{align}
+
+\textbf{(C2) 选址唯一性：}
+\begin{equation}
+\sum_{s \in S} z_{is} \leq 1, \quad \forall i \in C \label{eq:c2}
+\end{equation}
+
+\textbf{(C3) 基地使能（非基地站禁止货动装卸和中转）：}
+\begin{align}
+t_i^k &\leq M w_i, \quad \forall i \in C, k \label{eq:c3a}\\
+\sum_k (\ell x_i^k + ux_i^k) &= 0, \quad \forall i \notin C \label{eq:c3b}
+\end{align}
+
+\textbf{(C4) 基地处理能力：}
+\begin{equation}
+\sum_k (\ell x_i^k + ux_i^k) \leq \sum_s \text{Cap}_s^{\text{emu}} \cdot 85 \cdot z_{is}, \quad \forall i \in C \label{eq:c4}
+\end{equation}
+
+\textbf{(C5) 捎带站能力：}
+\begin{equation}
+\sum_k (\ell y_i^k + uy_i^k) \leq 96, \quad \forall i \in V \label{eq:c5}
+\end{equation}
+
+\textbf{(C6) 区间通过能力：}
+\begin{equation}
+\sum_k x_{uv}^k \leq 680, \quad \forall (u,v) \in A \label{eq:c6}
+\end{equation}
+
+\textbf{(C7) 中转量定义：}
+\begin{align}
+t_i^k &\geq \ell x_i^k + \ell y_i^k - s_k, \quad i=O(k) \label{eq:c7a}\\
+t_i^k &\geq \ell x_i^k + \ell y_i^k, \quad i \neq O(k), D(k) \label{eq:c7b}\\
+\ell x_i^k = \ell y_i^k &= 0, \quad i=D(k) \label{eq:c7c}\\
+ux_i^k = uy_i^k &= 0, \quad i=O(k) \label{eq:c7d}
+\end{align}
+
+\subsection*{模型规模}
+\begin{itemize}
+    \item 连续变量：262,390 个
+    \item 0-1 变量：48 个（12站点 $\times$ 4规模）
+    \item 约束条件：33,262 个
+    \item 求解器：Gurobi 12.0.3
+    \item 求解时间：\textasciitilde 1.58 秒（至 1\% gap）
+\end{itemize}
+
+\section*{问题四：列车开行方案路径拆解}
+
+基于问题三的弧流量 $x_{uv} = \sum_k x_{uv}^k$，使用贪心路径拆解：
+
+\begin{enumerate}
+    \item 构建有向流量图 $F=(V, A_f)$，边权为 $x_{uv}$
+    \item 寻找净流出节点 $i^*$（$\sum_v x_{i^*v} > \sum_u x_{ui^*}$）作为起点
+    \item 沿最大流量出边追踪至净流入节点，形成一条路径 $P$
+    \item 路径流量 $f_P = \min_{(u,v) \in P} x_{uv}$
+    \item 开行频次 $n_P = \lceil f_P / 85 \rceil$
+    \item 从各边扣除 $f_P$，移除零流边
+    \item 重复直至无边剩余
+\end{enumerate}
+
+\section*{问题五：财务评估模型}
+
+\begin{align}
+\text{NPV} &= -I_0 + \sum_{t=1}^{20} \frac{R_t - C_t}{(1+r)^t} \\
+\text{IRR} &: \text{NPV}(r) = 0 \text{ 的解} \\
+\text{Payback} &= \frac{I_0}{\bar{R} - \bar{C}} \\
+\text{BEP} &= \frac{C_{\text{fixed}}}{p_{\text{avg}} - c_{\text{var}}}
+\end{align}
+
+其中 $I_0 = 6.912$ 亿元（总投资），$r=5\%$（折现率）。
+
+\section*{问题六：竞争分析模型}
+
+对运输距离 $d$，模式 $m$ 的 200 吨货物总成本：
+\begin{equation}
+C_m(d) = \left\lceil\frac{200}{Q_m}\right\rceil \cdot (F_m + v_m \cdot d) + 200 \cdot \ell_m
+\end{equation}
+其中 $Q_m$：装载能力，$F_m$：固定成本，$v_m$：变动成本，$\ell_m$：装卸费。
+
+含时间价值的综合成本：
+\begin{equation}
+C_m^{\text{total}}(d) = C_m(d) + 200 \cdot \left(\frac{d}{s_m} + \tau_m\right) \cdot \lambda
+\end{equation}
+其中 $s_m$：速度，$\tau_m$：集散时间，$\lambda$：货物时间价值（元/吨·小时）。
+
+\end{document}

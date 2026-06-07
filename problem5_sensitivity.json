@@ -1,0 +1,84 @@
+{
+  "demand": [
+    {
+      "change": -0.4,
+      "annual_profit_yi": 4.632353409580519
+    },
+    {
+      "change": -0.2,
+      "annual_profit_yi": 6.268871212774027
+    },
+    {
+      "change": -0.1,
+      "annual_profit_yi": 7.087130114370778
+    },
+    {
+      "change": 0.0,
+      "annual_profit_yi": 7.905389015967531
+    },
+    {
+      "change": 0.1,
+      "annual_profit_yi": 8.723647917564286
+    },
+    {
+      "change": 0.2,
+      "annual_profit_yi": 9.541906819161039
+    },
+    {
+      "change": 0.4,
+      "annual_profit_yi": 11.178424622354543
+    }
+  ],
+  "rate": [
+    {
+      "change": -0.3,
+      "annual_profit_yi": 7.363193327367531
+    },
+    {
+      "change": -0.15,
+      "annual_profit_yi": 7.634291171667532
+    },
+    {
+      "change": -0.05,
+      "annual_profit_yi": 7.815023067867532
+    },
+    {
+      "change": 0.0,
+      "annual_profit_yi": 7.905389015967531
+    },
+    {
+      "change": 0.05,
+      "annual_profit_yi": 7.995754964067531
+    },
+    {
+      "change": 0.15,
+      "annual_profit_yi": 8.176486860267532
+    },
+    {
+      "change": 0.3,
+      "annual_profit_yi": 8.44758470456753
+    }
+  ],
+  "cost": [
+    {
+      "change": -0.3,
+      "payback_years": 0.47122293100560153
+    },
+    {
+      "change": -0.15,
+      "payback_years": 0.5751028625409044
+    },
+    {
+      "change": 0.0,
+      "payback_years": 0.6800424355008212
+    },
+    {
+      "change": 0.15,
+      "payback_years": 0.7860579465289618
+    },
+    {
+      "change": 0.3,
+      "payback_years": 0.8931660281675926
+    }
+  ]
+}

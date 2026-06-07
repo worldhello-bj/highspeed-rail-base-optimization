@@ -11,28 +11,53 @@ venv/
 
 # Jupyter
 .ipynb_checkpoints/
+*.ipynb
 
 # IDE
 .vscode/
 .idea/
+.claude/
 
 # OS
 Thumbs.db
 .DS_Store
 
-# LaTeX / PDF aux files
+# LaTeX build artifacts (but keep final PDFs)
 *.aux
 *.log
-*.toc
 *.out
+*.toc
 *.synctex.gz
-*.pdf
+*.fls
+*.fdb_latexmk
 
-# Large data outputs (keep CSVs though)
-*.json
-!problem5_results.json
-!problem6_results.json
+# Node / JS
+node_modules/
+package.json
+package-lock.json
+*.js
 
 # PPT/Word temp files
 ~$*.pptx
 ~$*.docx
+*.pptx
+
+# Git lock
+.git/index.lock
+__pycache__/
+
+# Keep these important outputs
+!report.pdf
+!problem3_report.pdf
+!problem3_sensitivity_report.pdf
+!problem1_report.pdf
+!problem2_report.pdf
+!problem1_detailed.pdf
+!math_models.pdf
+
+!problem5_results.json
+!problem6_results.json
+!problem3_sensitivity_full.json
+!problem3_min_satisfaction.json
+
+!docx_images/*.png
